@@ -1,0 +1,21 @@
+{
+  "clearMocks": true,
+  "coverageProvider": "v8",
+  "roots": [
+    "<rootDir>/src"
+  ],
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "moduleFileExtensions": [
+    "js",
+    "jsx",
+    "ts",
+    "tsx",
+    "json",
+    "node"
+  ],
+  "transformIgnorePatterns": [
+    "/node_modules/",
+    "\\.pnp\\.[^\\/]+$"
+  ]
+}

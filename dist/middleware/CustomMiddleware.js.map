@@ -1,0 +1,1 @@
+{"version":3,"file":"CustomMiddleware.js","sourceRoot":"","sources":["../../src/middleware/CustomMiddleware.ts"],"names":[],"mappings":";;;AAEA,MAAa,gBAAgB;IAC3B,uCAAuC;IAEvC,GAAG,CAAC,OAAY,EAAE,QAAa,EAAE,IAAyB;QACxD,OAAO,CAAC,GAAG,CAAC,iBAAiB,CAAC,CAAC;QAC/B,IAAI,EAAE,CAAC;IACT,CAAC;CACF;AAPD,4CAOC"}
