@@ -1,0 +1,6 @@
+{
+  "express": {
+    "port": 8000,
+    "jwtSecret": "secret"
+  }
+}
