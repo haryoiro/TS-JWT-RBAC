@@ -10,14 +10,17 @@ export class Application {
   express: ExpressConfig;
   connection: DatabaseConfig;
   constructor() {
-    this.init()
+    this.connection = new DatabaseConfig()
+    this.express = new ExpressConfig()
   }
 
-  private async init() {
-    this.connection = await new DatabaseConfig()
-    this.express = await new ExpressConfig()
-    const port = await config.get("express.port")
-    this.server = await this.express.app.listen(port, () => {
+  /**
+   * jestでのテスト時に使用する
+   * @returns Express
+   */
+  public async app() {
+    const port: number = await config.get("express.port") || 8000
+    await this.express.app.listen(port, "172.0.0.1", () => {
       logger.info(`
 ---------------------------
   Server ready
@@ -25,13 +28,6 @@ export class Application {
 ---------------------------
       `)
     })
-    return this
-  }
-  /**
-   * jestでのテスト時に使用する
-   * @returns Express
-   */
-  public app() {
-    return this.express.app
+    return await this.express.app
   }
 }

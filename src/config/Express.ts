@@ -26,12 +26,13 @@ export class ExpressConfig {
         cors: true
       })
     }
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV == "test") {
       const controllersPath = path.resolve("src", "controllers")
       useExpressServer(this.app, {
         controllers: [`${controllersPath}/*.ts`],
         cors: true
       })
     }
+    return this.app
   }
 }

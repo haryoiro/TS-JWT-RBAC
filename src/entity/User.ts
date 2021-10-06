@@ -6,7 +6,6 @@ import {
   Unique,
   CreateDateColumn,
   UpdateDateColumn,
-  PrimaryColumn,
 } from "typeorm";
 import { Length, IsNotEmpty, IsEmail } from "class-validator";
 import * as bcrypt from "bcryptjs";
@@ -16,10 +15,10 @@ import * as jwt from "jsonwebtoken";
 // JWT SECRET
 const secret: string = config.get("express.jwtSecret")
 
-@Entity()
-@Unique(["username"])
+@Entity("User")
+@Unique(["username", "id"])
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("uuid")
   id: number;
 
   @Column()
