@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
   PrimaryColumn,
 } from "typeorm";
-import { IsNotEmpty, IsEmail } from "class-validator";
+import { IsNotEmpty, IsEmail, IsDate } from "class-validator";
 import * as bcrypt from "bcryptjs";
 import * as config from 'config';
 import * as jwt from "jsonwebtoken";
@@ -29,6 +29,10 @@ export class User {
   @IsEmail()
   @PrimaryColumn()
   email: string;
+
+  @Column()
+  @IsDate()
+  emailVerifiedAt: Date;
 
   @Column()
   passwordHash: string;
