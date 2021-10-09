@@ -1,4 +1,3 @@
-
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,8 +5,9 @@ import {
   Unique,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from "typeorm";
-import { Length, IsNotEmpty, IsEmail } from "class-validator";
+import { IsNotEmpty, IsEmail } from "class-validator";
 import * as bcrypt from "bcryptjs";
 import * as config from 'config';
 import * as jwt from "jsonwebtoken";
@@ -16,17 +16,18 @@ import * as jwt from "jsonwebtoken";
 const secret: string = config.get("express.jwtSecret")
 
 @Entity("User")
-@Unique(["username", "id"])
 export class User {
   @PrimaryGeneratedColumn("uuid")
   id: number;
 
   @Column()
   @IsNotEmpty()
+  @PrimaryColumn()
   username: string;
 
   @Column()
   @IsEmail()
+  @PrimaryColumn()
   email: string;
 
   @Column()

@@ -10,8 +10,7 @@ export class Application {
   express: ExpressConfig;
   connection: DatabaseConfig;
   constructor() {
-    this.connection = new DatabaseConfig()
-    this.express = new ExpressConfig()
+    this.app()
   }
 
   /**
@@ -19,15 +18,16 @@ export class Application {
    * @returns Express
    */
   public async app() {
-    const port: number = await config.get("express.port") || 8000
-    await this.express.app.listen(port, "172.0.0.1", () => {
-      logger.info(`
----------------------------
-  Server ready
-  http://localhost:${port}
----------------------------
-      `)
-    })
-    return await this.express.app
+    try {
+      this.connection = await new DatabaseConfig()
+      this.express = await new ExpressConfig()
+      const port: number = await config.get("express.port") || 8000
+      this.server = await this.express.app.listen(port, "127.0.0.1", () => {
+        logger.info(`Server ready at http://localhost:${port}`)
+      })
+      return await this.server
+    } catch(e) {
+      console.log(e)
+    }
   }
 }

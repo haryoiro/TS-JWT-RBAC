@@ -4,6 +4,7 @@ import * as path from "path"
 import * as helmet from 'helmet';
 import { useExpressServer } from "routing-controllers"
 import { morganMiddleware } from '../middleware/morganMiddleware'
+import { errorHandleMiddleware } from '../middleware/ErrorHandleMiddleware'
 
 export class ExpressConfig {
 
@@ -19,20 +20,13 @@ export class ExpressConfig {
   }
 
   setUpControllers() {
-    if (process.env.NODE_ENV === "production") {
-      const controllersPath = path.resolve("dist", "controllers")
-      useExpressServer(this.app, {
-        controllers: [`${controllersPath}/*.js`],
-        cors: true
-      })
-    }
-    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV == "test") {
-      const controllersPath = path.resolve("src", "controllers")
-      useExpressServer(this.app, {
-        controllers: [`${controllersPath}/*.ts`],
-        cors: true
-      })
-    }
+    const sourceRootPath = process.env.NODE_ENV === "production" ? "dist" : "src"
+    const controllersPath = path.resolve(sourceRootPath, "controllers")
+    useExpressServer(this.app, {
+      controllers: [`${controllersPath}/*.[tj]s`],
+      middlewares: [errorHandleMiddleware],
+      cors: true
+    })
     return this.app
   }
 }

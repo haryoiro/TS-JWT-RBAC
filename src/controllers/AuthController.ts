@@ -7,6 +7,7 @@ import {
   Res,
   UseBefore,
   Get,
+  Patch,
 } from "routing-controllers";
 import { Response } from "express";
 import { getRepository, Repository } from "typeorm";
@@ -14,66 +15,62 @@ import { validate } from "class-validator";
 
 import { User } from "../entity/User";
 import { checkJwt } from "../middleware/AuthMiddleware";
-import { ConflictError } from "../common/Errors/Conflict";
+import { resjson } from "../common/createResponse";
 
-@JsonController()
-export class AurhController {
+@JsonController("/auth")
+export class AuthController {
   userRepository: Repository<User> = getRepository(User);
 
-  @Get("/login")
-  async loginin() {
-    return { "message": "messageeee"}
-  }
-
   @Post("/signup")
-  async signup(@Body() body: any) {
+  async signup(@Res() res: Response,@Body() body: any) {
     const { email, username, password } = body
+
+    if (!(email && username) || !password) {
+      return new BadRequestError("not enough parameters")
+    }
+    // if (this.userRepository.find({ email }) ||
+    //   this.userRepository.find({ username })) {
+    //   throw new ConflictError("Username or Email is already in use")
+    // }
+
     const user = await new User()
-    user.username = username
-    user.email = email
+    user.username = username || ""
+    user.email = email || ""
     user.role = "User"
     await user.setHashPassword(password)
-    
+  
     const errors = await validate(user)
     if (errors.length > 0) {
-      throw new BadRequestError()
+      return new BadRequestError("validation error")
     }
 
     await this.userRepository.save(user)
-
-    const userRepository = await getRepository(User);
-    const savedUser = await userRepository
-      .save(user)
-      .catch(() => { throw new ConflictError("Username or Email is already in use") })
-
-    const token = await savedUser.generateToken()
-    return { token }
+    return resjson(200, "User is created")
   }
 
   @Post("/login")
   async login(@Body() body: any) {
     let { username, email, password } = body
-    if (!(username || email) && password) throw new BadRequestError("username or password is required.")
+    if (!(username || email) && password) return new BadRequestError("username or password is required.")
 
-    const user = await this.userRepository.createQueryBuilder("user")
+    const user = await this.userRepository.createQueryBuilder("User")
       .where("user.username = :username", { username })
       .orWhere("user.email = :email", { email })
       .getOneOrFail()
-    console.log(user)
 
     if (!user.checkPasswordIsValid(password))
-      throw new ForbiddenError()
+      return new ForbiddenError()
 
     const token = await user.generateToken()
     return { token }
   }
 
-  @Post("/change-password")
+  @Patch("/change-password")
   @UseBefore(checkJwt)
   async changePassword(@Res() response: Response, @Body() body: any) {
     const { oldPassword, newPassword } = body
     if (!(oldPassword, newPassword))
-      throw new BadRequestError()
+      return new BadRequestError()
 
     const id = response.locals.jwtPayload.userId
     const user = await this.userRepository
@@ -81,13 +78,13 @@ export class AurhController {
       .catch(() => { throw new BadRequestError() })
 
     if (!user.checkPasswordIsValid(oldPassword))
-      throw new ForbiddenError()
+      return new ForbiddenError()
 
     user.setHashPassword(newPassword)
 
     const errors = await validate(user)
     if (errors.length > 0)
-      throw new BadRequestError()
+      return new BadRequestError()
 
     this.userRepository.save(user)
   }

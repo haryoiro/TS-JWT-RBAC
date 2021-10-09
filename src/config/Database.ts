@@ -9,6 +9,6 @@ export class DatabaseConfig {
 
   async setUpDatabase() {
     this.connection = await createConnection()
-    return this
+    return this.connection
   }
 }
