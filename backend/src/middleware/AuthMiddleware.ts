@@ -41,7 +41,6 @@ export const checkRole = (roles: Array<RoleList>) => {
 
 
 export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
-
   try {
     const token = <string>req.headers["authorization"].split(' ')[1];
     let jwtPayload = <any>jwt.verify(token, secret, {

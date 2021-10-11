@@ -1,3 +1,4 @@
+import { error, success } from './../common/createResponse';
 import {
   Body,
   Post,
@@ -21,7 +22,6 @@ import { validate } from "class-validator";
 
 import { RoleList, User } from "../entity/User";
 import { checkJwt } from "../middleware/AuthMiddleware";
-import { ConflictError } from "../common/Errors/Conflict";
 
 @JsonController("/auth")
 export class AuthController {
@@ -32,24 +32,20 @@ export class AuthController {
     const { email, username, password } = body
 
     if (!(email && username) || !password) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send({
-          success: false,
-          error: ReasonPhrases.BAD_REQUEST,
-          message: "ユーザ名かメールアドレスが不正です。"
-        })
+      return error(
+        res,
+        StatusCodes.BAD_REQUEST,
+        ReasonPhrases.BAD_REQUEST,
+        "ユーザ名かメールアドレスが不正です。")
     }
-    
+
     if (await this.userRepository.findOne({ email }) ||
       await this.userRepository.findOne({ username })) {
-      return res
-        .status(StatusCodes.CONFLICT)
-        .send({
-          success: false,
-          error: getReasonPhrase(StatusCodes.CONFLICT),
-          message: "ユーザ名またはメールアドレスがすでに使用されています。"
-        })
+        return error(
+          res,
+          StatusCodes.CONFLICT,
+          ReasonPhrases.CONFLICT,
+          "ユーザ名かメールアドレスが不正です。")
     }
 
     const user = await new User()
@@ -58,63 +54,53 @@ export class AuthController {
     user.verified = false
     user.role = RoleList.User
     await user.setHashPassword(password)
-  
+
     // ユーザエンティティで定義されたバリデーションを実行
     const errors = await validate(user)
     if (errors.length > 0) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send({
-          error: "Validation Error",
-          message: errors
-        })
+      return error(
+        res,
+        StatusCodes.BAD_REQUEST,
+        ReasonPhrases.BAD_REQUEST,
+        errors)
     }
 
     await this.userRepository.save(user)
-    return res
-      .status(StatusCodes.CREATED)
-      .send({
-        success: true,
-        error: false,
-        message: "User is Created"
-      })
+
+    return success(res,
+      StatusCodes.CREATED,
+      ReasonPhrases.CREATED,
+      "User registered")
   }
 
   @Post("/login")
   async login(@Res() res: Response,　@Body() body: any) {
     try {
       let { username, password } = body
-      if (!username && password)
-        return res
-          .status(StatusCodes.BAD_REQUEST)
-          .send({
-            success: false,
-            error: getReasonPhrase(StatusCodes.CONFLICT),
-            message: "ユーザ名またはパスワードが不正です。"
-          })
+      if (!username && password)　
+        return error(res,
+          StatusCodes.BAD_REQUEST,
+          ReasonPhrases.BAD_REQUEST,
+          "ユーザ名かメールアドレスが不正です。")
 
       const user = await this.userRepository.findOne({ username })
       if (!user)
-        return res
-          .status(StatusCodes.NOT_FOUND)
-          .send({
-            success: false,
-            error: ReasonPhrases.NOT_FOUND,
-            message: "ユーザがみつかりません。"
-          })
+        return error(res,
+          StatusCodes.BAD_REQUEST,
+          ReasonPhrases.BAD_REQUEST,
+          "ユーザ名またはメールアドレスが不正です。")
 
       if (!(await user.checkPasswordIsValid(password)))
-        return res
-          .status(StatusCodes.BAD_REQUEST)
-          .send({
-            success: false,
-            error: ReasonPhrases.BAD_REQUEST,
-            message: "ユーザ名またはパスワードが不正です。"
-          })
+        return error(res,
+          StatusCodes.BAD_REQUEST,
+          ReasonPhrases.BAD_REQUEST,
+          "ユーザ名またはメールアドレスが不正です。")
 
       const token = await user.generateToken()
-      console.log(token)
-      return { token }
+      return success(res,
+        StatusCodes.OK,
+        ReasonPhrases.OK,
+        { token })
     } catch (e) {
       console.log(e)
     }
@@ -164,7 +150,7 @@ export class AuthController {
           message: errors
         })
     }
-  
+
     this.userRepository.save(user)
   }
 }
