@@ -10,15 +10,16 @@ import {
   Spacer,
 } from "@chakra-ui/react"
 import { useForm, SubmitHandler, SubmitErrorHandler } from 'react-hook-form'
-import Auth from "../../services/auth.service"
+import Auth, { RoleList } from "../../services/auth.service"
 import { Form } from "../Forms/Form"
 import { Header } from "../Header"
 import validator from "validator"
 import { useMutation } from "react-query"
 import { useHistory } from "react-router-dom"
+import jwtDecode from "jwt-decode"
 
 const validMinMax = (value: string, tag: string, min?: number, max?: number) => {
-  if (min && value.length <= min) return `${tag}は${min}文字以上必要です。`
+  if (min && value.length < min) return `${tag}は${min}文字以上必要です。`
   if (max && value.length >= max) return `${tag}は${max}文字以下である必要があります。`
 }
 
@@ -42,7 +43,13 @@ export const LoginForm: React.FC = () => {
 
   const handleOnSubmit: SubmitHandler<ValuesType> = async (values) => {
     const res = await mutation.mutateAsync(values)
-    if (res) return history.push("/profile")
+    const { Role }: { Role: RoleList }= jwtDecode(res)
+    // if Admin
+    if (Role === RoleList.Admin) {
+      return history.push("/admin")
+    }
+    // if Not Admin
+    return history.push("/profile")
   }
 
   const handleOnError: SubmitErrorHandler<ValuesType> = (errors) => {
