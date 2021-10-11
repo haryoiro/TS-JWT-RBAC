@@ -26,7 +26,7 @@ export const authHeader = () => {
   }
 }
 
-class AuthSearvice {
+class AuthService {
   setToken(newToken: string) {
     const token = `Bearer ${newToken}`
     if (window.localStorage) {
@@ -35,10 +35,10 @@ class AuthSearvice {
   }
 
   async login(content: ILoginRequest) {
-    const response: AxiosResponse<ITokenResponse> = await api.post("/auth/login", content)
-    const token = response.data.token
-    this.setToken(JSON.stringify(token))
-    if (response.status === 200) return token
+    const response: AxiosResponse<any> = await api.post("/auth/login", content)
+    const token = await response.data.data.token
+    await this.setToken(JSON.stringify(token))
+    return token
   }
 
   logout() {
@@ -59,5 +59,10 @@ class AuthSearvice {
     }
   }
 }
+export enum RoleList {
+  Admin,
+  Moderator,
+  User,
+}
 
-export default new AuthSearvice
+export default new AuthService
