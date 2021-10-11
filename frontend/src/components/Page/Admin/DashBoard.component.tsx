@@ -1,4 +1,5 @@
 import { VStack, Spacer } from '@chakra-ui/react';
+import { Header } from "../../Header"
 import React from 'react'
 
 
@@ -8,10 +9,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({  }) => {
     return (
         <VStack>
             <Spacer />
-            <Headers></Headers>
+            <Header></Header>
             <Spacer />
         </VStack>
-  
     )
 };
 
