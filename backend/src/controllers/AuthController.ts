@@ -9,83 +9,162 @@ import {
   Get,
   Patch,
 } from "routing-controllers";
+import {
+  ReasonPhrases,
+  StatusCodes,
+  getReasonPhrase,
+  getStatusCode,
+} from 'http-status-codes';
 import { Response } from "express";
 import { getRepository, Repository } from "typeorm";
 import { validate } from "class-validator";
 
-import { User } from "../entity/User";
+import { RoleList, User } from "../entity/User";
 import { checkJwt } from "../middleware/AuthMiddleware";
-import { resjson } from "../common/createResponse";
+import { ConflictError } from "../common/Errors/Conflict";
 
 @JsonController("/auth")
 export class AuthController {
   userRepository: Repository<User> = getRepository(User);
 
-  @Post("/signup")
-  async signup(@Res() res: Response,@Body() body: any) {
+  @Post("/register")
+  async register(@Res() res: Response, @Body() body: any) {
     const { email, username, password } = body
 
     if (!(email && username) || !password) {
-      return new BadRequestError("not enough parameters")
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({
+          success: false,
+          error: ReasonPhrases.BAD_REQUEST,
+          message: "ユーザ名かメールアドレスが不正です。"
+        })
     }
-    // if (this.userRepository.find({ email }) ||
-    //   this.userRepository.find({ username })) {
-    //   throw new ConflictError("Username or Email is already in use")
-    // }
+    
+    if (await this.userRepository.findOne({ email }) ||
+      await this.userRepository.findOne({ username })) {
+      return res
+        .status(StatusCodes.CONFLICT)
+        .send({
+          success: false,
+          error: getReasonPhrase(StatusCodes.CONFLICT),
+          message: "ユーザ名またはメールアドレスがすでに使用されています。"
+        })
+    }
 
     const user = await new User()
     user.username = username || ""
     user.email = email || ""
-    user.role = "User"
+    user.verified = false
+    user.role = RoleList.User
     await user.setHashPassword(password)
   
+    // ユーザエンティティで定義されたバリデーションを実行
     const errors = await validate(user)
     if (errors.length > 0) {
-      return new BadRequestError("validation error")
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({
+          error: "Validation Error",
+          message: errors
+        })
     }
 
     await this.userRepository.save(user)
-    return resjson(200, "User is created")
+    return res
+      .status(StatusCodes.CREATED)
+      .send({
+        success: true,
+        error: false,
+        message: "User is Created"
+      })
   }
 
   @Post("/login")
-  async login(@Body() body: any) {
-    let { username, email, password } = body
-    if (!(username || email) && password) return new BadRequestError("username or password is required.")
+  async login(@Res() res: Response,　@Body() body: any) {
+    try {
+      let { username, password } = body
+      if (!username && password)
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .send({
+            success: false,
+            error: getReasonPhrase(StatusCodes.CONFLICT),
+            message: "ユーザ名またはパスワードが不正です。"
+          })
 
-    const user = await this.userRepository.createQueryBuilder("User")
-      .where("user.username = :username", { username })
-      .orWhere("user.email = :email", { email })
-      .getOneOrFail()
+      const user = await this.userRepository.findOne({ username })
+      if (!user)
+        return res
+          .status(StatusCodes.NOT_FOUND)
+          .send({
+            success: false,
+            error: ReasonPhrases.NOT_FOUND,
+            message: "ユーザがみつかりません。"
+          })
 
-    if (!user.checkPasswordIsValid(password))
-      return new ForbiddenError()
+      if (!(await user.checkPasswordIsValid(password)))
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .send({
+            success: false,
+            error: ReasonPhrases.BAD_REQUEST,
+            message: "ユーザ名またはパスワードが不正です。"
+          })
 
-    const token = await user.generateToken()
-    return { token }
+      const token = await user.generateToken()
+      console.log(token)
+      return { token }
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   @Patch("/change-password")
   @UseBefore(checkJwt)
-  async changePassword(@Res() response: Response, @Body() body: any) {
+  async changePassword(@Res() res: Response, @Body() body: any) {
     const { oldPassword, newPassword } = body
     if (!(oldPassword, newPassword))
-      return new BadRequestError()
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({
+          success: false,
+          error: getReasonPhrase(StatusCodes.CONFLICT),
+          message: "ユーザ名またはパスワードが不正です。"
+        })
 
-    const id = response.locals.jwtPayload.userId
-    const user = await this.userRepository
-      .findOneOrFail(id)
-      .catch(() => { throw new BadRequestError() })
+    const id = res.locals.jwtPayload.userId
+    const user = await this.userRepository.findOne(id)
+    if (!user)
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .send({
+          success: false,
+          error: ReasonPhrases.NOT_FOUND,
+          message: "ユーザがみつかりません。"
+        })
 
     if (!user.checkPasswordIsValid(oldPassword))
-      return new ForbiddenError()
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({
+          success: false,
+          error: ReasonPhrases.BAD_REQUEST,
+          message: "ユーザ名またはパスワードが不正です。"
+        })
 
-    user.setHashPassword(newPassword)
+    await user.setHashPassword(newPassword)
 
     const errors = await validate(user)
-    if (errors.length > 0)
-      return new BadRequestError()
-
+    if (errors.length > 0) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .send({
+          error: "Validation Error",
+          message: errors
+        })
+    }
+  
     this.userRepository.save(user)
   }
 }

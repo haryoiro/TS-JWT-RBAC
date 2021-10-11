@@ -6,14 +6,23 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryColumn,
+  ManyToMany,
+  JoinTable,
 } from "typeorm";
 import { IsNotEmpty, IsEmail, IsDate } from "class-validator";
 import * as bcrypt from "bcryptjs";
 import * as config from 'config';
 import * as jwt from "jsonwebtoken";
+import { Role } from "./Role";
 
 // JWT SECRET
 const secret: string = config.get("express.jwtSecret")
+
+export enum RoleList {
+  Admin,
+  Moderator,
+  User,
+}
 
 @Entity("User")
 export class User {
@@ -31,15 +40,13 @@ export class User {
   email: string;
 
   @Column()
-  @IsDate()
-  emailVerifiedAt: Date;
+  verified: boolean
 
   @Column()
   passwordHash: string;
 
   @Column()
-  @IsNotEmpty()
-  role: string;
+  role: RoleList
 
   @Column()
   @CreateDateColumn()
@@ -49,23 +56,26 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  checkPasswordIsValid(password: string) {
-    return bcrypt.compareSync(password, this.passwordHash);
+  async checkPasswordIsValid(password: string) {
+    return await bcrypt.compareSync(password, this.passwordHash);
   }
 
-  setHashPassword(password: string) {
-    return this.passwordHash = bcrypt.hashSync(password, 8)
+  async setHashPassword(password: string) {
+    const saltRound = 10
+    return this.passwordHash = await bcrypt.hashSync(password, saltRound)
   }
 
   async generateToken() {
     return await jwt.sign(
       {
         userId: this.id,
-        username: this.username
+        username: this.username,
+        Role: this.role,
       },
       secret,
       {
-        expiresIn: "1h"
+        expiresIn: "1h",
+        algorithm: "HS256"
       },
     );
   }

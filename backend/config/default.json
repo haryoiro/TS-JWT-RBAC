@@ -1,6 +1,6 @@
 {
   "express": {
     "port": 8000,
-    "jwtSecret": "secret"
+    "jwtSecret": "Uis12k9R6zbGzXXL5YWSyeGOXQKaQh7TuOKxB4iWSScYVcaB5AT1JN1Zf4cUhDS"
   }
 }
