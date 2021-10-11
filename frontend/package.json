@@ -17,6 +17,7 @@
     "@types/validator": "^13.6.3",
     "axios": "^0.22.0",
     "framer-motion": "^4",
+    "jwt-decode": "^3.1.2",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "react-hook-form": "^7.17.2",
