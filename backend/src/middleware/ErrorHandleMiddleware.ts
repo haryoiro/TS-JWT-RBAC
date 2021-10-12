@@ -1,11 +1,18 @@
 import { Middleware, ExpressErrorMiddlewareInterface, HttpError } from 'routing-controllers';
-import { ConflictError } from 'common/Errors/Conflict';
+import  * as boom from "@hapi/boom"
 import { logger } from "../common/Logging"
 
-@Middleware({ type: 'after' })
-export class errorHandleMiddleware implements ExpressErrorMiddlewareInterface {
-  error(error: ConflictError, request: any, response: any, next: (err: any) => any) {
-    logger.info(`${error.httpCode} ${error.operationName}`)
-    next("")
-  }
+export const errorHandleMiddleware = (request: any, response: any, next: () => any) => {
+  // logger.info(`${error.httpCode}`)
+  if (response.boom) throw new Error("boom already exists on response object")
+  console.log("eroo")
+  response.boom = {};
+  Object.getOwnPropertyNames(boom).forEach((key) => {
+    console.log(!!boom[key])
+    if (typeof boom[key] !== "function") return
+    if (response.boom[key]) {
+      response.boom[key]()
+    }
+  })
+  next()
 }

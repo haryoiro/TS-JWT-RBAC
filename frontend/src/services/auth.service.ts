@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import api from "./index"
 import * as validator from 'validator'
 import axios, { AxiosError, AxiosResponse } from "axios";
@@ -35,10 +36,15 @@ class AuthService {
   }
 
   async login(content: ILoginRequest) {
-    const response: AxiosResponse<any> = await api.post("/auth/login", content)
-    const token = await response.data.data.token
-    await this.setToken(JSON.stringify(token))
-    return token
+    try {
+      const response: AxiosResponse<any> = await api.post("/auth/login", content)
+      console.log(response)
+      const token = await response.data.data.token
+      await this.setToken(JSON.stringify(token))
+      return token
+    } catch (e) {
+      console.log(e.message)
+    }
   }
 
   logout() {
@@ -48,14 +54,11 @@ class AuthService {
   async register(content: IRegisterRequest) {
     try {
       const response: AxiosResponse<ITokenResponse> = await api.post("/auth/register", content)
+      console.log(response)
       if (response.status === 200) return response.data
     } catch (e) {
-      if (axios.isAxiosError(e) && e.response && e.response.status === 400) {
-        return {
-          status: 400,
-          message: e.message
-        }
-      }
+      console.log(e.response)
+      return e.response
     }
   }
 }

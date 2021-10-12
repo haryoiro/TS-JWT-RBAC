@@ -14,6 +14,7 @@ import * as bcrypt from "bcryptjs";
 import * as config from 'config';
 import * as jwt from "jsonwebtoken";
 import { Role } from "./Role";
+import * as Dayjs from "dayjs";
 
 // JWT SECRET
 const secret: string = config.get("express.jwtSecret")
@@ -65,18 +66,25 @@ export class User {
     return this.passwordHash = await bcrypt.hashSync(password, saltRound)
   }
 
-  async generateToken() {
+  async token(duration: number = null) {
     return await jwt.sign(
       {
-        userId: this.id,
-        username: this.username,
-        Role: this.role,
+        exp: Dayjs().add(duration || 1000, 'minutes').unix(),
+        iat: Dayjs().unix(),
+        sub: this.id,
+        role: this.role,
       },
       secret,
       {
-        expiresIn: "1h",
         algorithm: "HS256"
       },
     );
+  }
+
+  constructor(username, email) {
+    this.username = username
+    this.email = email
+    this.verified = false
+    this.role = RoleList.User
   }
 }

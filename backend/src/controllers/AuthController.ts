@@ -1,154 +1,94 @@
-import { error, success } from './../common/createResponse';
+import { AuthService } from './../service/Auth.service';
 import {
   Body,
   Post,
   JsonController,
-  ForbiddenError,
-  BadRequestError,
   Res,
   UseBefore,
-  Get,
   Patch,
+  Req,
 } from "routing-controllers";
-import {
-  ReasonPhrases,
-  StatusCodes,
-  getReasonPhrase,
-  getStatusCode,
-} from 'http-status-codes';
 import { Response } from "express";
-import { getRepository, Repository } from "typeorm";
+import { getCustomRepository, getRepository, Repository } from "typeorm";
 import { validate } from "class-validator";
 
 import { RoleList, User } from "../entity/User";
 import { checkJwt } from "../middleware/AuthMiddleware";
+import { badRequest, conflict } from '@hapi/boom';
+import { UserRepository } from '../repositories/User.repository';
+import { IResponse } from '../types/Response.interface';
 
 @JsonController("/auth")
 export class AuthController {
   userRepository: Repository<User> = getRepository(User);
 
   @Post("/register")
-  async register(@Res() res: Response, @Body() body: any) {
-    const { email, username, password } = body
+  async register(@Res() res: IResponse, @Body() body: any, next: (e?: Error) => void) {
+    try {
+      const { email, username, password } = body
 
-    if (!(email && username) || !password) {
-      return error(
-        res,
-        StatusCodes.BAD_REQUEST,
-        ReasonPhrases.BAD_REQUEST,
-        "ユーザ名かメールアドレスが不正です。")
+      if (!(email && username) || !password) {
+        return res.boom.badRequest("不正なリクエスト")
+      }
+
+      if (await this.userRepository.findOne({ email })) {
+        return res.boom.conflict("Emailはすでに登録されています。")
+      } else if (await this.userRepository.findOne({ username })) {
+        return res.boom.conflict("ユーザはすでに登録されています。")
+      }
+
+      const user = await new User(username, email)
+      await user.setHashPassword(password)
+
+      // ユーザエンティティで定義されたバリデーションを実行
+      const errors = await validate(user)
+      if (errors.length > 0) {
+        return res.boom.badRequest("ValidationError", errors)
+      }
+
+      await this.userRepository.insert(user)
+      const accessToken = await user.token()
+      const token = await AuthService.generateTokenResponse(user, accessToken)
+      return res.status(201).send({ token, user, message: "ユーザが登録されました", })
+    } catch (e) {
+      console.log("error", e)
     }
-
-    if (await this.userRepository.findOne({ email }) ||
-      await this.userRepository.findOne({ username })) {
-        return error(
-          res,
-          StatusCodes.CONFLICT,
-          ReasonPhrases.CONFLICT,
-          "ユーザ名かメールアドレスが不正です。")
-    }
-
-    const user = await new User()
-    user.username = username || ""
-    user.email = email || ""
-    user.verified = false
-    user.role = RoleList.User
-    await user.setHashPassword(password)
-
-    // ユーザエンティティで定義されたバリデーションを実行
-    const errors = await validate(user)
-    if (errors.length > 0) {
-      return error(
-        res,
-        StatusCodes.BAD_REQUEST,
-        ReasonPhrases.BAD_REQUEST,
-        errors)
-    }
-
-    await this.userRepository.save(user)
-
-    return success(res,
-      StatusCodes.CREATED,
-      ReasonPhrases.CREATED,
-      "User registered")
   }
 
   @Post("/login")
-  async login(@Res() res: Response,　@Body() body: any) {
-    try {
-      let { username, password } = body
-      if (!username && password)　
-        return error(res,
-          StatusCodes.BAD_REQUEST,
-          ReasonPhrases.BAD_REQUEST,
-          "ユーザ名かメールアドレスが不正です。")
+  async login(@Res() res: Response, @Body() body: any) {
+    const repository = getCustomRepository(UserRepository);
+    const { user, accessToken } = await repository.findAndGenerateToken(body);
+    const token = await AuthService.generateTokenResponse(user, await accessToken)
+    res.locals.data = { token, user }
+  }
 
-      const user = await this.userRepository.findOne({ username })
-      if (!user)
-        return error(res,
-          StatusCodes.BAD_REQUEST,
-          ReasonPhrases.BAD_REQUEST,
-          "ユーザ名またはメールアドレスが不正です。")
-
-      if (!(await user.checkPasswordIsValid(password)))
-        return error(res,
-          StatusCodes.BAD_REQUEST,
-          ReasonPhrases.BAD_REQUEST,
-          "ユーザ名またはメールアドレスが不正です。")
-
-      const token = await user.generateToken()
-      return success(res,
-        StatusCodes.OK,
-        ReasonPhrases.OK,
-        { token })
-    } catch (e) {
-      console.log(e)
-    }
+  @Post("/logout")
+  async logout(@Res() res: IResponse, @Req() req: { user: any }) {
+    await AuthService.revokeRefreshToken(req.user)
+    res.locals.data = null
   }
 
   @Patch("/change-password")
   @UseBefore(checkJwt)
-  async changePassword(@Res() res: Response, @Body() body: any) {
+  async changePassword(@Res() res: IResponse, @Body() body: any) {
     const { oldPassword, newPassword } = body
     if (!(oldPassword, newPassword))
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send({
-          success: false,
-          error: getReasonPhrase(StatusCodes.CONFLICT),
-          message: "ユーザ名またはパスワードが不正です。"
-        })
+      return res.boom.conflict("ユーザ名またはパスワードが不正です。")
 
     const id = res.locals.jwtPayload.userId
     const user = await this.userRepository.findOne(id)
     if (!user)
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .send({
-          success: false,
-          error: ReasonPhrases.NOT_FOUND,
-          message: "ユーザがみつかりません。"
-        })
+      return res.boom.badRequest("ユーザがみつかりません。")
 
     if (!user.checkPasswordIsValid(oldPassword))
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send({
-          success: false,
-          error: ReasonPhrases.BAD_REQUEST,
-          message: "ユーザ名またはパスワードが不正です。"
-        })
+      return res.boom.badRequest("ユーザ名またはパスワードが不正です。")
 
     await user.setHashPassword(newPassword)
 
     const errors = await validate(user)
     if (errors.length > 0) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .send({
-          error: "Validation Error",
-          message: errors
-        })
+      return res.boom.badRequest("ValidationError", errors)
     }
 
     this.userRepository.save(user)

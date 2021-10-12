@@ -1,10 +1,11 @@
+import { errorHandleMiddleware } from './../middleware/ErrorHandleMiddleware';
 import * as express from "express"
 import * as cors from "cors"
 import * as path from "path"
 import * as helmet from 'helmet';
+import * as boom from "express-boom-v2"
 import { useExpressServer } from "routing-controllers"
 import { morganMiddleware } from '../middleware/morganMiddleware'
-import { errorHandleMiddleware } from '../middleware/ErrorHandleMiddleware'
 
 export class ExpressConfig {
 
@@ -15,7 +16,9 @@ export class ExpressConfig {
     this.app.use(express.json())
     this.app.use(express.urlencoded({ extended: true }))
     this.app.use(helmet());
+    this.app.use(boom())
     this.app.use(morganMiddleware)
+    // this.app.use(errorHandleMiddleware)
     this.setUpControllers();
   }
 
@@ -24,7 +27,6 @@ export class ExpressConfig {
     const controllersPath = path.resolve(sourceRootPath, "controllers")
     useExpressServer(this.app, {
       controllers: [`${controllersPath}/*.[tj]s`],
-      middlewares: [errorHandleMiddleware],
       cors: true
     })
     return this.app
