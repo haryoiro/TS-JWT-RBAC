@@ -1,3 +1,4 @@
+import { badImplementation } from '@hapi/boom';
 import { AuthService } from './../service/Auth.service';
 import {
   Body,
@@ -7,32 +8,39 @@ import {
   UseBefore,
   Patch,
   Req,
+  OnUndefined,
+  Get,
 } from "routing-controllers";
-import { Response } from "express";
+import { Response, Request } from "express";
 import { getCustomRepository, getRepository, Repository } from "typeorm";
 import { validate } from "class-validator";
-
 import { RoleList, User } from "../entity/User";
-import { checkJwt } from "../middleware/AuthMiddleware";
-import { badRequest, conflict } from '@hapi/boom';
-import { UserRepository } from '../repositories/User.repository';
-import { IResponse } from '../types/Response.interface';
+import { GuardJwt, GuardRefresh, GuardRole } from "../middleware/AuthMiddleware";
+import { ILoginResponse, IResponse } from './types/IResponse';
+import { IRegisterResponse } from './types/IRegisterResponse';
+import * as Dayjs from 'dayjs';
+import { env } from '../config/Environment';
+import { RefreshToken } from 'entity/RefreshToken';
+import cors = require('cors');
+import { secureCookie } from 'config/Cookie';
+
 
 @JsonController("/auth")
 export class AuthController {
   userRepository: Repository<User> = getRepository(User);
 
   @Post("/register")
-  async register(@Res() res: IResponse, @Body() body: any, next: (e?: Error) => void) {
+  async register(
+    @Res() res: IRegisterResponse,
+    @Body() { email, username, password }
+  ) {
     try {
-      const { email, username, password } = body
-
       if (!(email && username) || !password) {
         return res.boom.badRequest("不正なリクエスト")
       }
 
       if (await this.userRepository.findOne({ email })) {
-        return res.boom.conflict("Emailはすでに登録されています。")
+        return res.boom.conflict("Emailはすでに使用されています。")
       } else if (await this.userRepository.findOne({ username })) {
         return res.boom.conflict("ユーザはすでに登録されています。")
       }
@@ -47,41 +55,93 @@ export class AuthController {
       }
 
       await this.userRepository.insert(user)
-      const accessToken = await user.token()
-      const token = await AuthService.generateTokenResponse(user, accessToken)
-      return res.status(201).send({ token, user, message: "ユーザが登録されました", })
+      return res.status(201).send({
+        message: "ok"
+      })
     } catch (e) {
-      console.log("error", e)
+      throw badImplementation(e)
     }
   }
 
   @Post("/login")
-  async login(@Res() res: Response, @Body() body: any) {
-    const repository = getCustomRepository(UserRepository);
-    const { user, accessToken } = await repository.findAndGenerateToken(body);
-    const token = await AuthService.generateTokenResponse(user, await accessToken)
-    res.locals.data = { token, user }
+  async login(
+    @Res() res: ILoginResponse,
+    @Req() req: Request,
+    @Body() { username, password }
+  ) {
+    try {
+      if (!username || !password) {
+        return res.boom.badRequest("不正なリクエスト")
+      }
+
+      const user = await this.userRepository.findOne({ username })
+      const isValid = await user.isValidPassword(password)
+      if (!user || !isValid) {
+        return res.boom.badRequest("ユーザ名かパスワードが違います")
+      }
+
+      const { accessToken, refreshToken } = await AuthService.generateTokenResponse(user).catch(e => e)
+      const refreshTokenExpires: Date = Dayjs().add( env.REFRESH_TOKEN_DURATION, env.REFRESH_TOKEN_DURATION_UNIT ).toDate()
+      return res
+        .cookie(
+          "refresh_token",
+          refreshToken,
+          secureCookie({expires: refreshTokenExpires})
+        )
+        // accessToken
+        .json({ token: { accessToken } })
+    }catch(e) {
+      return res.boom.forbidden(e.message)
+    }
   }
 
   @Post("/logout")
-  async logout(@Res() res: IResponse, @Req() req: { user: any }) {
+  async logout(
+    @Res() res: IResponse,
+    @Req() req: { user: any }
+  ) {
     await AuthService.revokeRefreshToken(req.user)
-    res.locals.data = null
+    return res.locals.data = null
+  }
+
+  @Post("/refresh")
+  async refresh(
+    @Res() res: IResponse,
+    @Req() req: Request,
+    @Body() body: any
+  ) {
+    const token = req.cookies["refresh_token"]
+
+    const newRefreshToken: RefreshToken
+      = await AuthService.verifyAndSignRefreshToken(token)
+    if (!newRefreshToken.token)
+      return res.boom.unauthorized("invalid refresh token")
+
+    const accessToken = await AuthService.signAccessToken(newRefreshToken.user)
+
+    return res.status(200)
+      .cookie(
+        "refresh_token",
+        newRefreshToken.token,
+        secureCookie({expires: newRefreshToken.expires,}),
+      )
+      // accessToken
+      .send({ token: { accessToken }})
   }
 
   @Patch("/change-password")
-  @UseBefore(checkJwt)
+  @UseBefore(GuardJwt)
   async changePassword(@Res() res: IResponse, @Body() body: any) {
     const { oldPassword, newPassword } = body
     if (!(oldPassword, newPassword))
       return res.boom.conflict("ユーザ名またはパスワードが不正です。")
 
-    const id = res.locals.jwtPayload.userId
-    const user = await this.userRepository.findOne(id)
+    const username = res.locals.jwt?.username
+    const user = await this.userRepository.findOne({ username })
     if (!user)
       return res.boom.badRequest("ユーザがみつかりません。")
 
-    if (!user.checkPasswordIsValid(oldPassword))
+    if (!user.isValidPassword(oldPassword))
       return res.boom.badRequest("ユーザ名またはパスワードが不正です。")
 
     await user.setHashPassword(newPassword)

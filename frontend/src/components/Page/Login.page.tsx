@@ -10,47 +10,48 @@ import {
   Spacer,
 } from "@chakra-ui/react"
 import { useForm, SubmitHandler, SubmitErrorHandler } from 'react-hook-form'
-import Auth from "../../services/auth.service"
+import Auth, { RoleList } from "../../services/auth.service"
 import { Form } from "../Forms/Form"
-import { Header } from "../Header"
-import validator from "validator"
-import { Redirect, useHistory } from "react-router"
-import { useMutation, useQueryClient } from "react-query"
-const { isEmail } = validator
+import { Header } from "../Nav"
+import { useMutation } from "react-query"
+import { useHistory } from "react-router-dom"
+import useSharedStore from "../../hooks/useSharedStore"
+import { useRecoilValue } from "recoil"
+import { authAtom } from "../../state/auth.state"
+import { useUserActions } from "../../actions/user.action"
+import { useEffect } from "react"
 
-const validEmail = (value: string) => {
-  if (!isEmail(value)) {
-    return "メールアドレスの形式が不正です"
-  }
-}
-const validMinMax = (value: string, tag:string, min?: number, max?: number) => {
-  if (min && value.length <= min) return `${tag}は${min}文字以上必要です。`
+const validMinMax = (value: string, tag: string, min?: number, max?: number) => {
+  if (min && value.length < min) return `${tag}は${min}文字以上必要です。`
   if (max && value.length >= max) return `${tag}は${max}文字以下である必要があります。`
 }
 
 type ValuesType = {
   username: string,
-  email: string,
   password: string,
 }
 
 // https://tech.stmn.co.jp/entry/2021/04/23/091310
-export const RegisterForm: React.FC = () => {
-  const mutation = useMutation((values: any) => Auth.register(values))
-  const history = useHistory();
+export const Login: React.FC = () => {
+  const auth = useRecoilValue(authAtom)
+  const userActions = useUserActions();
+  const history = useHistory()
+
   const { register, watch, handleSubmit, formState } = useForm<ValuesType>({
     mode: 'onSubmit',
     reValidateMode: 'onChange',
     defaultValues: {
       username: '',
-      email: '',
       password: '',
     }
   })
 
-  const handleOnSubmit: SubmitHandler<ValuesType> = async (values) => {
-    const res = await mutation.mutateAsync(values)
-    if (res?.status == 200) return history.push("/login")
+  useEffect(() => {
+    if (auth) history.push("/")
+  }, [])
+
+  const handleOnSubmit: SubmitHandler<ValuesType> = async ({ username, password }) => {
+    await userActions.login(username, password)
   }
 
   const handleOnError: SubmitErrorHandler<ValuesType> = (errors) => {
@@ -62,7 +63,7 @@ export const RegisterForm: React.FC = () => {
       <Spacer />
       <Header></Header>
       <Spacer />
-      
+
       <Center>
         <form onSubmit={handleSubmit(handleOnSubmit, handleOnError)}>
           <Form
@@ -77,17 +78,6 @@ export const RegisterForm: React.FC = () => {
               })
             } />
           <FormErrorMessage>{formState.errors.username}</FormErrorMessage>
-          <Form
-            id='email'
-            type="text"
-            labelName="email"
-            errors={formState.errors}
-            register={register('email', {
-              required: 'メールアドレスは必須フィールドです。',
-              validate: validEmail,
-            })}
-          />
-          <FormErrorMessage>{formState.errors.email}</FormErrorMessage>
           <Form
             id='password'
             type="password"

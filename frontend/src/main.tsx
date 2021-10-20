@@ -6,18 +6,21 @@ import App from './App'
 
 import { ChakraProvider } from "@chakra-ui/react"
 import { QueryClient, QueryClientProvider } from 'react-query'
+import { RecoilRoot } from 'recoil';
 
 const queryClient = new QueryClient();
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ChakraProvider resetCSS={true}>
-          <App />
-        </ChakraProvider>
-      </QueryClientProvider>
-    </BrowserRouter>,
+    <RecoilRoot>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <ChakraProvider resetCSS={true}>
+            <App />
+          </ChakraProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </RecoilRoot>
   </React.StrictMode>,
   document.getElementById('root')
 )

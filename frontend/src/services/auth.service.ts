@@ -1,8 +1,6 @@
-import { Response } from 'express';
-import api from "./index"
-import * as validator from 'validator'
-import axios, { AxiosError, AxiosResponse } from "axios";
-const { isEmail, isJWT } = validator.default
+import api from "./apiAccess"
+import axios, { AxiosResponse } from "axios";
+import { base64 } from "../helper/base64";
 
 interface ILoginRequest {
   username: string
@@ -17,51 +15,77 @@ interface IRegisterRequest {
   password: string
   email: string
 }
-export const authHeader = () => {
-  const token = window.localStorage.getItem("token")
-
-  if (token) {
-    return { Authorization: token }
-  } else {
-    return {}
-  }
+interface IUser {
+  id: string,
+  username: string,
+  role: number
+}
+interface IPayload extends Object {
+  iat: Date
+  exp: Date
+  user: IUser
 }
 
 class AuthService {
-  setToken(newToken: string) {
-    const token = `Bearer ${newToken}`
-    if (window.localStorage) {
-      window.localStorage.setItem("token", token)
-    }
-  }
+
+  constructor() { }
 
   async login(content: ILoginRequest) {
     try {
       const response: AxiosResponse<any> = await api.post("/auth/login", content)
-      console.log(response)
-      const token = await response.data.data.token
-      await this.setToken(JSON.stringify(token))
-      return token
+      const accessToken = await response.data.token.accessToken
+      const payload = await this.payload(accessToken)
+      sessionStorage.setItem("token", accessToken)
+      sessionStorage.setItem("user", JSON.stringify(payload.user))
+      return { user: payload.user, token: accessToken }
     } catch (e) {
-      console.log(e.message)
+      console.log("res",e)
     }
   }
 
-  logout() {
-    window.localStorage.removeItem("token")
+  async logout() {
+    try {
+      const user = window.localStorage.getItem("user")
+      if (!user) return
+      const response: AxiosResponse<any> = await api.post("/auth/logout", JSON.parse(user))
+      sessionStorage.removeItem("token")
+      sessionStorage.removeItem("user")
+      return response
+    } catch(e) {
+      console.log("logout", e)
+    }
   }
 
-  async register(content: IRegisterRequest) {
+  async register(content: IRegisterRequest): Promise<any> {
     try {
       const response: AxiosResponse<ITokenResponse> = await api.post("/auth/register", content)
-      console.log(response)
-      if (response.status === 200) return response.data
+      return response
     } catch (e) {
-      console.log(e.response)
-      return e.response
+      return e
     }
   }
+
+  // async refresh() {
+  //   try {
+  //     const response: AxiosResponse<any> = await api.post("/auth/refresh")
+  //   }
+  // }
+
+  async payload(token: string):  Promise<IPayload> {
+    const payload = await token.split(".")[1]
+    const decodedPayload = await base64(payload)
+    const data: IPayload = await JSON.parse(decodedPayload)
+    return data
+  }
+
+  header() {
+    const token = sessionStorage.get("token")
+    return { headers: {
+      authorization: `Bearer ${token}`,
+    } }
+  }
 }
+
 export enum RoleList {
   Admin,
   Moderator,

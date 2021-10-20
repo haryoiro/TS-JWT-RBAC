@@ -16,14 +16,10 @@ import {
 import { Response } from "express"
 import { RoleList, User } from "../entity/User";
 import { getRepository, Repository } from "typeorm";
-import { checkJwt, checkRole } from "../middleware/AuthMiddleware";
+import { GuardJwt, GuardRole } from "../middleware/AuthMiddleware";
 import { validate } from "class-validator";
 import { ConflictError } from "../common/Errors/Conflict";
-import { getReasonPhrase, StatusCodes } from "http-status-codes";
-import { success } from "../common/createResponse";
 
-
-const checkAdmin = checkRole([RoleList.Admin])
 
 @JsonController("/admin")
 export class UserController {
@@ -31,17 +27,13 @@ export class UserController {
 
   // GetAll
   @Get("/users")
-  @UseAfter(checkJwt, checkAdmin)
+  @UseBefore(GuardJwt, GuardRole([RoleList.Admin]))
   async getAllUsers(@Res() res: Response) {
-    const users = await this.userRepository.find()
-    return success(
-      res,
-      users,
-    )
+    return "users"
   }
 
   @Get("/users/:id([0-9]+)")
-  @UseAfter(checkJwt, checkAdmin)
+  @UseAfter(GuardJwt, GuardRole([RoleList.Admin]))
   async getById(@Param("id") id: string) {
     try {
       return await this.userRepository.findOneOrFail(id, {
@@ -53,7 +45,7 @@ export class UserController {
   }
 
   @Patch("/users/:id([0-9]+)")
-  @UseBefore(checkJwt, checkAdmin)
+  @UseBefore(GuardJwt, GuardRole([RoleList.Admin]))
   async edit(@Param("id") id: string, @Body() body: any) {
     const { username, role } = body
 
@@ -73,7 +65,7 @@ export class UserController {
 
 
   @Delete("/users/:id([0-9]+)")
-  @UseBefore(checkJwt, checkAdmin)
+  @UseBefore(GuardJwt, GuardRole([RoleList.Admin]))
   async delete(@Param("id") id: string) {
     await this.userRepository
       .findOneOrFail(id)

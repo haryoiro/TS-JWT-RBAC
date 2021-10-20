@@ -1,0 +1,51 @@
+POST http://localhost:8000/auth/register
+Content-Type: application/json
+Host: localhost:8000
+
+{
+    "email": "aahasqsdadfafrysdfoiro.example@example.com",
+    "username": "aqsqaasdfhsdfasdfryoiro",
+    "password": "exampleses"
+}
+
+###
+
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+Host: localhost:8000
+
+{
+    "username": "admina",
+    "password": "adminadmin"
+}
+
+###
+
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+Host: localhost:8000
+
+{
+    "username": "aharyoiro",
+    "password": "exampleses"
+}
+
+###
+
+GET http://localhost:8000/admin/users
+Content-Type: application/json
+Host: localhost:8000
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiY2Y5YjE1MGMtYWE3MC00YTBiLWFhNmEtODE4Yjk3NTJjMGQ0IiwidXNlcm5hbWUiOiJhZG1pbmEiLCJyb2xlIjowfSwiaWF0IjoxNjM0MjcyMDE0LCJleHAiOjE2MzQyNzU2MTR9.HlEzuXUrADFDY_64Vvjq967gxoPcAbtNTcOAozepPrekkpQP4WTvz6O6Bze3jvMQ7kRy0Gt4FIT-Gul_DSnD2Q
+
+###
+
+GET http://localhost:8000/admin/users
+Content-Type: application/json
+Host: localhost:8000
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiZjUyZGRkY2YtYTlhMy00NWFhLWI2MTktZWI0ZTEyMWM5M2ViIiwidXNlcm5hbWUiOiJhZG1pbmEiLCJyb2xlIjoyfSwiaWF0IjoxNjM0MjcxMDI0LCJleHAiOjE2MzQyNzQ2MjR9.X75_ob8fphCo-833-tze_DXk5QRO2mxa8mu3b9M0hcduyzxkdik9FKif7xuxMH28P90681Gqf74Rl2EdADYAXQ
+
+###
+
+POST http://localhost:8000/auth/refresh
+Content-Type: application/json
+Host: localhost:8000

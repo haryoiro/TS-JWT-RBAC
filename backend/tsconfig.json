@@ -17,9 +17,6 @@
     "noImplicitUseStrict": false,
     "outDir": "./dist/",
     "baseUrl": "./src/",
-    "paths": {
-      "@/*": ["*/src/"]
-    },
     "listFiles": false,
   },
   "include": [

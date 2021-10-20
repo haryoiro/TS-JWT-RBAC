@@ -5,10 +5,13 @@ import { User } from "./User";
 export class RefreshToken {
 
     @PrimaryGeneratedColumn("uuid")
-    id: number
+    id: string
 
     @Column()
     token: string
+
+    @Column()
+    jwtid: string
 
     @OneToOne(type => User, {
         eager: true,
@@ -20,9 +23,10 @@ export class RefreshToken {
     @Column()
     expires: Date
 
-    constructor(token: string, user: User, expires: Date) {
+    constructor(token?: string, user?: User, expires?: Date, jwtid?: string) {
         this.token = token
         this.expires = expires
         this.user = user
+        this.jwtid = jwtid
     }
 }
