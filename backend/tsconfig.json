@@ -16,8 +16,9 @@
     "noImplicitReturns": false,
     "noImplicitUseStrict": false,
     "outDir": "./dist/",
-    "baseUrl": "./src/",
+    "baseUrl": "./src",
     "listFiles": false,
+    "esModuleInterop": false
   },
   "include": [
     "src/**/*"
@@ -27,5 +28,9 @@
     "node_modules",
     "*/__tests__/*/**"
   ],
-  "compileOnSave": true
+  "compileOnSave": true,
+  "ts-node": {
+    "transpileOnly": true,
+    "transpiler": "ts-node/transpilers/swc-experimental"
+  }
 }

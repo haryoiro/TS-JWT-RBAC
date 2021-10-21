@@ -1,13 +1,21 @@
 import { VStack, Spacer } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react'
-import User from '../../../services/user.service';
+import User from '../../services/user.service';
 import { useMutation } from 'react-query';
-
+import {
+    Table,
+    Thead,
+    Tbody,
+    Tfoot,
+    Tr,
+    Th,
+    Td,
+    TableCaption,
+} from "@chakra-ui/react"
 
 export type AdminDashboardProps = { }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = () => {
-    const [users, setUsers] = useState()
     const { mutate } = useMutation(() => User.getAllUsers())
 
     useEffect(() => {

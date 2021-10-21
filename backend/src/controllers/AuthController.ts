@@ -10,19 +10,19 @@ import {
   Req,
   OnUndefined,
   Get,
+  Authorized,
 } from "routing-controllers";
 import { Response, Request } from "express";
 import { getCustomRepository, getRepository, Repository } from "typeorm";
 import { validate } from "class-validator";
 import { RoleList, User } from "../entity/User";
-import { GuardJwt, GuardRefresh, GuardRole } from "../middleware/AuthMiddleware";
 import { ILoginResponse, IResponse } from './types/IResponse';
 import { IRegisterResponse } from './types/IRegisterResponse';
 import * as Dayjs from 'dayjs';
 import { env } from '../config/Environment';
 import { RefreshToken } from 'entity/RefreshToken';
 import cors = require('cors');
-import { secureCookie } from 'config/Cookie';
+import { secureCookie } from '../config/Cookie';
 
 
 @JsonController("/auth")
@@ -96,19 +96,20 @@ export class AuthController {
   }
 
   @Post("/logout")
+  @Authorized()
   async logout(
     @Res() res: IResponse,
     @Req() req: { user: any }
   ) {
     await AuthService.revokeRefreshToken(req.user)
-    return res.locals.data = null
+    res.locals.data = null
+    return res.status(200).json({message: "logout succeed"})
   }
 
   @Post("/refresh")
   async refresh(
     @Res() res: IResponse,
     @Req() req: Request,
-    @Body() body: any
   ) {
     const token = req.cookies["refresh_token"]
 
@@ -130,7 +131,6 @@ export class AuthController {
   }
 
   @Patch("/change-password")
-  @UseBefore(GuardJwt)
   async changePassword(@Res() res: IResponse, @Body() body: any) {
     const { oldPassword, newPassword } = body
     if (!(oldPassword, newPassword))

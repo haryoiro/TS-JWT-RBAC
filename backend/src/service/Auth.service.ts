@@ -7,28 +7,25 @@ import * as Dayjs from 'dayjs';
 import { JwtPayload, sign, verify, SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { env } from '../config/Environment';
 
-const ACCESS_TOKEN_DURATION = "1h"
-const REFRESH_TOKEN_DURATION = "30d"
-
 class JwtOption {
     static signAccess = (val?): SignOptions => {return {
         ...val,
-        "expiresIn": ACCESS_TOKEN_DURATION,
+        "expiresIn": env.ACCESS_TOKEN_DURATION+env.ACCESS_TOKEN_DURATION_UNIT,
         "algorithm": "ES256",
     }}
     static verifyAccess = (val?): VerifyOptions => {return {
         ...val,
-        "expiresIn": ACCESS_TOKEN_DURATION,
+        "expiresIn": env.ACCESS_TOKEN_DURATION+env.ACCESS_TOKEN_DURATION_UNIT,
         "algorithms": ["ES256"]
     }}
     static signRefresh = (val?): SignOptions => {return {
         ...val,
-        "expiresIn": REFRESH_TOKEN_DURATION,
+        "expiresIn": env.REFRESH_TOKEN_DURATION + env.REFRESH_TOKEN_DURATION_UNIT,
         "algorithm": "ES256"
     }}
     static verifyRefresh = (val?): VerifyOptions => {return {
         ...val,
-        "expiresIn": REFRESH_TOKEN_DURATION,
+        "expiresIn": env.REFRESH_TOKEN_DURATION + env.REFRESH_TOKEN_DURATION_UNIT,
         "algorithms": ["ES256"]
     }}
 }

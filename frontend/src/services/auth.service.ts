@@ -26,6 +26,13 @@ interface IPayload extends Object {
   user: IUser
 }
 
+export function genHeader() {
+  const token = sessionStorage.get("token")
+  return { headers: {
+    authorization: `Bearer ${token}`,
+  } }
+}
+
 class AuthService {
 
   constructor() { }
@@ -37,6 +44,7 @@ class AuthService {
       const payload = await this.payload(accessToken)
       sessionStorage.setItem("token", accessToken)
       sessionStorage.setItem("user", JSON.stringify(payload.user))
+      console.log(accessToken)
       return { user: payload.user, token: accessToken }
     } catch (e) {
       console.log("res",e)
@@ -76,13 +84,6 @@ class AuthService {
     const decodedPayload = await base64(payload)
     const data: IPayload = await JSON.parse(decodedPayload)
     return data
-  }
-
-  header() {
-    const token = sessionStorage.get("token")
-    return { headers: {
-      authorization: `Bearer ${token}`,
-    } }
   }
 }
 

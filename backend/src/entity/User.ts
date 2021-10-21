@@ -27,10 +27,13 @@ export enum RoleList {
 
 @Entity("User")
 export class User {
+  static createQueryBuilder(arg0: string) {
+    throw new Error("Method not implemented.");
+  }
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   @IsNotEmpty()
   @PrimaryColumn()
   username: string;

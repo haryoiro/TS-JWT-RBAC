@@ -1,12 +1,18 @@
 import api from "./apiAccess"
 import axios, { AxiosResponse } from "axios";
-import authService from "./auth.service";
+import authService, { genHeader } from "./auth.service";
 
 class UserService {
-    async getAllUsers() {
+    async getAllUsers(skip:number=0, take:number=10) {
         try {
-            const headers = authService.header()
-            const response: AxiosResponse<any> = await api.get("/admin/users", headers)
+            const response: AxiosResponse<any> = await api
+                .get("/admin/users", {
+                    ...genHeader(),
+                    params: {
+                        skip,
+                        take,
+                    }
+                })
             console.log(response)
             return response
         } catch (e) {
