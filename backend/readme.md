@@ -1,6 +1,8 @@
 # ts-server-template
 
-TypeScriptとExpressJSを使用したモダンなサーバーテンプレート
+Express + Routing-Controller + TypeScipt + TypeORM
+
+- JWTによるRoleBasedAuthenticationの実装
 
 ## Features
 
@@ -13,23 +15,28 @@ reflect-metadata [GitHub](https://github.com/rbuckton/reflect-metadata)
 
 ## Usage
 
+### SwaggerUI
+
+Swaggerを使用してAPI使用を記述。
+サンプルは`refrerence/openapi.yaml`にて確認できます。
+
+SwaggerUIの
+DEVサーバを実行。
+```
+yarn dev
+```
+`http:localhost:8000/doc`にアクセス。
+
+`/doc`の部分は、`src/config/Document.ts`にて設定が可能です。
+
 ### マイグレーションを実行する
 
-```bash
-yarn migration:run
-
-```
-
-### ロールベースのユーザ認証を有効にする
+`yarn typeorm`でtypeormを実行できます。
+なお、細かい仕様については公式ドキュメントを参照してください。
 
 ```bash
-git checkout jwt
-```
-
-### シンプルなAPIサーバ
-
-```bash
-git checkout main
+yarn typeorm migration:generate -n gen
+yarn typeorm migration:run
 ```
 
 ### dockerで立ち上げる
