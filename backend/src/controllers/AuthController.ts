@@ -5,23 +5,18 @@ import {
   Post,
   JsonController,
   Res,
-  UseBefore,
   Patch,
   Req,
-  OnUndefined,
-  Get,
   Authorized,
 } from "routing-controllers";
-import { Response, Request } from "express";
-import { getCustomRepository, getRepository, Repository } from "typeorm";
+import { Request } from "express";
+import { getRepository, Repository } from "typeorm";
 import { validate } from "class-validator";
-import { RoleList, User } from "../entity/User";
-import { ILoginResponse, IResponse } from './types/IResponse';
-import { IRegisterResponse } from './types/IRegisterResponse';
+import { User } from "../entity/User";
+import { IResponse } from './types/IResponse';
 import * as Dayjs from 'dayjs';
 import { env } from '../config/Environment';
 import { RefreshToken } from 'entity/RefreshToken';
-import cors = require('cors');
 import { secureCookie } from '../config/Cookie';
 
 
@@ -31,7 +26,7 @@ export class AuthController {
 
   @Post("/register")
   async register(
-    @Res() res: IRegisterResponse,
+    @Res() res: IResponse,
     @Body() { email, username, password }
   ) {
     try {
@@ -65,7 +60,7 @@ export class AuthController {
 
   @Post("/login")
   async login(
-    @Res() res: ILoginResponse,
+    @Res() res: IResponse,
     @Req() req: Request,
     @Body() { username, password }
   ) {

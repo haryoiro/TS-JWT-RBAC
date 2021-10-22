@@ -27,10 +27,10 @@ export class UserRepository extends Repository<User> {
         return users
     }
 
-    async one(id: number) {
+    async one(id: string) {
         const user = await getRepository(User).findOne({
             where: { id },
-            select: ["id", "username", "role", "createdAt", "updatedAt"]
+            select: [...SORT_USER_FIELD, "passwordHash"]
         })
 
         if (!user) {

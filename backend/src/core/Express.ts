@@ -14,7 +14,7 @@ const sourceRootPath = process.env.NODE_ENV === "production" ? "dist" : "src"
 const controllersPath = path.resolve(sourceRootPath, "controllers")
 const middlewaresPath = path.resolve(sourceRootPath, "middleware")
 export const options: RoutingControllersOptions = {
-  defaultErrorHandler: true,
+  defaultErrorHandler: false,
   validation: true,
   cors: true,
   authorizationChecker,
@@ -36,7 +36,6 @@ export class ExpressConfig {
     this.app.use(boom())
     this.app.use(morganMiddleware)
     this.setUpControllers();
-
   }
 
   /**

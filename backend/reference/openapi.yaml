@@ -1,0 +1,514 @@
+openapi: 3.1.0
+info:
+  title: simple
+  version: '1.0'
+servers:
+  - url: 'http://localhost:8000'
+paths:
+  /auth/regsiter:
+    post:
+      summary: ''
+      operationId: post-auth-regsiter
+      responses:
+        '201':
+          description: Created
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                example-1:
+                  value:
+                    message: string
+        '400':
+          description: Bad Request
+      parameters:
+        - schema:
+            type: string
+          in: header
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  username: asdf
+                  email: aaa@aaa.aaa
+                  password: aaaaaaaaaaaaa
+              properties:
+                username:
+                  type: string
+                  minLength: 6
+                email:
+                  type: string
+                  minLength: 1
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                  format: password
+              required:
+                - username
+                - email
+                - password
+            examples:
+              example-1:
+                value:
+                  username: string
+                  email: user@example.com
+                  password: pa$$word
+        description: ''
+  /auth/login:
+    post:
+      summary: ''
+      operationId: post-auth-login
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  token:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        minLength: 1
+                    required:
+                      - accessToken
+                required:
+                  - token
+                x-examples:
+                  example-1:
+                    token:
+                      accessToken: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiOGFmZGY5NWEtOGUxYy00MTU5LWFhNzItMjBhNGMzNDk1YTNhIiwidXNlcm5hbWUiOiJhZG1pbmEiLCJyb2xlIjowfSwiaWF0IjoxNjM0NzgzMDMwLCJleHAiOjE2MzQ3ODY2MzB9.7C5V6KWctESarL3c9V6yd36OXAXCSnztdpAqSjd_MiM-aExsHjlKhd9kSqz6Fp-mUF25Qt0DrFG9zvmtvU4WNA
+            application/xml:
+              schema:
+                type: object
+                properties: {}
+          headers: {}
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                  error:
+                    type: string
+                    minLength: 1
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                  - statusCode
+                  - error
+                  - message
+                x-examples:
+                  example-1:
+                    statusCode: 400
+                    error: Bad Request
+                    message: ユーザ名かパスワードが違います
+              examples:
+                BadRequest:
+                  value:
+                    statusCode: 400
+                    error: Bad Request
+                    message: ユーザ名かパスワードが違います
+      parameters: []
+      requestBody:
+        $ref: '#/components/requestBodies/login'
+  /admin/users:
+    parameters: []
+    get:
+      summary: ''
+      operationId: get-users
+      responses:
+        '200':
+          $ref: '#/components/responses/users'
+      security:
+        - JWT: []
+      parameters:
+        - schema:
+            type: string
+            default: '0'
+          in: query
+          name: page=0
+          description: ユーザを一定間隔に区切って取得します。
+        - schema:
+            type: string
+          in: query
+          name: limit=10
+          description: この値ごとにユーザを取得します。
+        - schema:
+            type: string
+          in: query
+          name: order=ASC
+          description: ソートの方向を指定します。
+        - schema:
+            type: string
+          in: query
+          name: field=createdAt
+          description: ソートの対象となるフィールドを指定します。
+      description: |-
+        すべてのユーザを取得します。
+        Adminロールのみアクセス可能。
+  '/users/{userId}':
+    parameters:
+      - schema:
+          type: integer
+        name: userId
+        in: path
+        required: true
+        description: Id of an existing user.
+    get:
+      summary: Get User Info by User ID
+      tags: []
+      responses:
+        '200':
+          description: User Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                Get User Alice Smith:
+                  value:
+                    id: 142
+                    firstName: Alice
+                    lastName: Smith
+                    email: alice.smith@gmail.com
+                    dateOfBirth: '1997-10-31'
+                    emailVerified: true
+                    signUpDate: '2019-08-24'
+        '404':
+          description: User Not Found
+      operationId: get-users-userId
+      description: Retrieve the information of the user with the matching user ID.
+    patch:
+      summary: Update User Information
+      operationId: patch-users-userId
+      responses:
+        '200':
+          description: User Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                Updated User Rebecca Baker:
+                  value:
+                    id: 13
+                    firstName: Rebecca
+                    lastName: Baker
+                    email: rebecca@gmail.com
+                    dateOfBirth: '1985-10-02'
+                    emailVerified: false
+                    createDate: '2019-08-24'
+        '404':
+          description: User Not Found
+        '409':
+          description: Email Already Taken
+      description: Update the information of an existing user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  description: 'If a new email is given, the user''s email verified property will be set to false.'
+                dateOfBirth:
+                  type: string
+            examples:
+              Update First Name:
+                value:
+                  firstName: Rebecca
+              Update Email:
+                value:
+                  email: rebecca@gmail.com
+              Update Last Name & Date of Birth:
+                value:
+                  lastName: Baker
+                  dateOfBirth: '1985-10-02'
+        description: Patch user properties to update.
+components:
+  schemas:
+    User:
+      title: User
+      type: object
+      description: ''
+      examples:
+        - id: 8afdf95a-8e1c-4159-aa72-20a4c3495a3a
+          username: Alice
+          email: alice.smith@gmail.com
+          role: 2
+          passwordHash: $2a$08$gr5NqqicFeeOSP0cd35d.uGi3Xg2RN9dpMec1J.xo20Yx2wiv.ec2
+          createdAt: '2021-10-21 01:51:46'
+          updatedAt: '2021-10-21 01:51:46'
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        verified:
+          type: boolean
+          description: Set to true if the user's email has been verified.
+          default: false
+        passwordHash:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date
+      required:
+        - id
+        - username
+        - verified
+        - passwordHash
+        - createdAt
+        - updatedAt
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      description: ''
+  requestBodies:
+    login:
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            properties:
+              username:
+                type: string
+                minLength: 1
+              password:
+                type: string
+                minLength: 1
+            required:
+              - username
+              - password
+            x-examples:
+              example-1:
+                username: string
+                password: pa$$word
+    register:
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            x-examples:
+              example-1:
+                username: string
+                email: user@example.com
+                password: pa$$word
+            properties:
+              username:
+                type: string
+                minLength: 1
+              email:
+                type: string
+                minLength: 1
+              password:
+                type: string
+                minLength: 1
+            required:
+              - username
+              - password
+  responses:
+    users:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            properties:
+              all_page:
+                type: number
+              current_page:
+                type: number
+              next_page:
+                type: number
+              prev_page:
+                type: boolean
+              limit:
+                type: number
+              sorted_by:
+                type: string
+                minLength: 1
+              fields:
+                type: array
+                items:
+                  required: []
+                  properties: {}
+              result:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - username
+                        - verified
+                        - role
+                        - id
+                        - createdAt
+                        - updatedAt
+                      properties:
+                        username:
+                          type: string
+                          minLength: 1
+                        verified:
+                          type: boolean
+                        role:
+                          type: number
+                        id:
+                          type: string
+                          minLength: 1
+                        createdAt:
+                          type: string
+                          minLength: 1
+                        updatedAt:
+                          type: string
+                          minLength: 1
+                required:
+                  - users
+            required:
+              - all_page
+              - current_page
+              - next_page
+              - prev_page
+              - limit
+              - sorted_by
+              - fields
+              - result
+            x-examples:
+              example-1:
+                all_page: 10
+                current_page: 0
+                next_page: 1
+                prev_page: false
+                limit: 10
+                sorted_by: createdAt
+                fields:
+                  - username
+                  - verified
+                  - role
+                  - id
+                  - createdAt
+                  - updatedAt
+                result:
+                  users:
+                    - username: admina
+                      verified: false
+                      role: 0
+                      id: 8afdf95a-8e1c-4159-aa72-20a4c3495a3a
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Dangelo.Ward92
+                      verified: false
+                      role: 2
+                      id: e541c1f0-9598-4f10-870c-bfe5f8ddc19c
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Vivien_Paucek
+                      verified: false
+                      role: 2
+                      id: 4e934968-00a7-4dac-9cf2-23b96d9d0505
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Aisha_Hartmann
+                      verified: false
+                      role: 2
+                      id: 9d7e9cf6-7cc7-411a-9201-7024b408f2db
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Lucius.Ruecker69
+                      verified: false
+                      role: 2
+                      id: d123ba74-70f0-40d7-aae7-f723c3673396
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Verla.OKeefe1
+                      verified: false
+                      role: 2
+                      id: 13af9536-ff89-49f7-950d-003e7f3d7ed1
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Modesto.Beer91
+                      verified: false
+                      role: 2
+                      id: 80bcc984-22fb-4c35-b23f-0fb320f34ef7
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Eudora.Schuster79
+                      verified: false
+                      role: 2
+                      id: 9a69439d-c874-4823-8be0-aabdd87e1dd8
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Enos10
+                      verified: false
+                      role: 2
+                      id: ceec487c-7ef5-44ef-b13c-7027b98100c6
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+                    - username: Delfina87
+                      verified: false
+                      role: 2
+                      id: a1a3cc78-d9e7-4fae-bb73-fd26af7bc93c
+                      createdAt: '2021-10-21T01:51:46.000Z'
+                      updatedAt: '2021-10-21T01:51:46.000Z'
+          examples:
+            example-1:
+              all_page: 0
+              current_page: 0
+              next_page: 0
+              prev_page: true
+              limit: 0
+              sorted_by: string
+              fields:
+                - username
+                - verified
+                - role
+                - id
+                - createdAt
+                - updatedAt
+              result:
+                users:
+                  - username: string
+                    verified: true
+                    role: 0
+                    id: string
+                    createdAt: string
+                    updatedAt: string

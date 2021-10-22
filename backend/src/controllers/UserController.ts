@@ -3,27 +3,18 @@ import {
   Param,
   Body,
   Get,
-  Post,
-  Put,
   Delete,
   JsonController,
-  NotFoundError,
-  UseBefore,
   Patch,
-  BadRequestError,
   Res,
-  UseAfter,
   Authorized,
   QueryParams,
-  Req,
 } from "routing-controllers";
-import { Response, Request, query } from "express"
+import { Response } from "express"
 import { RoleList, User } from "../entity/User";
 import { getCustomRepository, getRepository, Repository } from "typeorm";
 import { IsInt, IsOptional, validate } from "class-validator";
-import { ConflictError } from "../common/Errors/Conflict";
 import { UserRepository } from "../repositories/User.repository";
-import { SortOrder } from "../types/types";
 
 
 class GetPaginationQuery {
@@ -77,35 +68,42 @@ export class UserController {
   @Get("/users/:id")
   async getById(@Res() res: Response, @Param("id") id: string) {
     console.log(id)
-    const user = await this.userRepository.findOne({where: { id }})
+    const user = await await getCustomRepository(UserRepository).one(id)
     return res.status(200).json(user)
   }
 
-  @Patch("/users/:id([0-9]+)")
-  async edit(@Param("id") id: string, @Body() body: any) {
-    const { username, role } = body
+  @Patch("/users/:id")
+  async edit(@Res() res: Response, @Param("id") id: string, @Body() body: any) {
+    const { username=null, email=null, role=null } = body
 
-    const user = await this.userRepository.findOneOrFail(id)
+    const user = await getCustomRepository(UserRepository).one(id)
 
-    user.username = username
-    user.role = role
+    if (username) user.username = username
+    if (email   ) user.email    = email
+    if (role    ) user.role     = role
 
     const errors = await validate(user)
     if (errors.length > 0) {
-      throw new BadRequestError()
+      return res.boom.badRequest("validation Error")
     }
-    await this.userRepository
-      .save(user)
-      .catch(() => { throw new ConflictError("username already in use") })
+
+    const saved = await this.userRepository.save(user)
+    delete saved.passwordHash
+
+    return res.status(200).json(saved)
   }
 
 
-  @Delete("/users/:id([0-9]+)")
-  async delete(@Param("id") id: string) {
-    await this.userRepository
-      .findOneOrFail(id)
-      .catch(() => { throw new NotFoundError("User not found") })
+  @Delete("/users/:id")
+  async delete(@Res() res: Response, @Param("id") id: string) {
+    const user = await getCustomRepository(UserRepository).one(id)
+    if (!user) {
+      return res.boom.notFound("User not found.")
+    }
 
-    this.userRepository.delete(id)
+    await this.userRepository.delete({ id })
+    return res.status(204).json({
+      message: "User is removed"
+    })
   }
 }

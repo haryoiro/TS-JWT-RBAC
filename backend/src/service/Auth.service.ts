@@ -92,8 +92,6 @@ class AuthService {
 
     async signRefreshToken(user: User): Promise<string | Boom<unknown>> {
         try {
-            const repo = getRepository(RefreshToken)
-
             if (!user || !(user instanceof User) || !user.id) {
                 return badData('User は Userインスタンスではありません')
             }
@@ -136,7 +134,6 @@ class AuthService {
             }
 
             // verify token
-            // JwtOption.verifyRefresh({ jwtid: oldRefreshToken.id })
             const payload = await verify( refreshToken, env.REFRESH_PUBLIC_KEY, JwtOption.verifyRefresh() ) as JwtPayload
 
             const user = await getRepository(User).findOne({ where: { id: payload.id} })

@@ -1,6 +1,4 @@
-import { IUser } from './IUser';
 import { Response,  } from "express"
-import { IToken } from "./IToken";
 import { JwtPayload } from 'jsonwebtoken';
 
 export interface IResponse extends Response {
@@ -17,9 +15,4 @@ type AppResponse = TypedResponse<{
     success: boolean,
     data?: any,
     error?: string,
-}>
-
-export type ILoginResponse = TypedResponse<{
-    token: IToken,
-    user: IUser
 }>

@@ -9,6 +9,8 @@ declare namespace Express {
         // wrap: (error: Error, statusCode?: number, message?: string) => BoomError;
         // create: (statusCode: number, message?: string, data?: any) => BoomError;
 
+        boomify: (message?: any, option?: any) => BoomError
+
         // 4xx
         badRequest: (message?: string, data?: any) => BoomError;
         unauthorized: (message?: string, scheme?: any, attributes?: any) => BoomError;
