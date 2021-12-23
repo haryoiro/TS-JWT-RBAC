@@ -18,11 +18,14 @@ import { Redirect, useHistory } from "react-router"
 import { useMutation, useQueryClient } from "react-query"
 const { isEmail } = validator
 
+// TODO: validation処理を一か所にまとめる。
+// TODO: テスト
 const validEmail = (value: string) => {
   if (!isEmail(value)) {
     return "メールアドレスの形式が不正です"
   }
 }
+
 const validMinMax = (value: string, tag:string, min?: number, max?: number) => {
   if (min && value.length <= min) return `${tag}は${min}文字以上必要です。`
   if (max && value.length >= max) return `${tag}は${max}文字以下である必要があります。`
@@ -34,7 +37,6 @@ type ValuesType = {
   password: string,
 }
 
-// https://tech.stmn.co.jp/entry/2021/04/23/091310
 export const Register: React.FC = () => {
   const mutation = useMutation((values: any) => Auth.register(values))
   const history = useHistory();
@@ -99,7 +101,7 @@ export const Register: React.FC = () => {
           />
           <FormErrorMessage>{formState.errors.password}</FormErrorMessage>
           <Button mt={4} colorScheme="teal" type="submit" disabled={!formState.isDirty && formState.isSubmitting}>
-            Login
+            Sign Up
           </Button>
         </form>
       </Center>
