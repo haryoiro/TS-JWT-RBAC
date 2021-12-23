@@ -50,18 +50,17 @@ export class AuthController {
       }
 
       await this.userRepository.insert(user)
-      return res.status(201).send({
+      return res.json({
         message: "ok"
       })
     } catch (e) {
-      throw badImplementation(e)
+      return res.boom.forbidden(e.message)
     }
   }
 
   @Post("/login")
   async login(
     @Res() res: IResponse,
-    @Req() req: Request,
     @Body() { username, password }
   ) {
     try {
