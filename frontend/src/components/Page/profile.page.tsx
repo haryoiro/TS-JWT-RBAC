@@ -13,7 +13,6 @@ import { useForm, SubmitHandler, SubmitErrorHandler } from 'react-hook-form'
 import Auth from "../../services/auth.service"
 import validator from "validator"
 import { Header } from "../Nav"
-const { isEmail } = validator
 
 // https://tech.stmn.co.jp/entry/2021/04/23/091310
 export const Profile: React.FC = () => {

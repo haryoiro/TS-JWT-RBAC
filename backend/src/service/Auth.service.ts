@@ -137,7 +137,7 @@ class AuthService {
             const payload = await verify( refreshToken, env.REFRESH_PUBLIC_KEY, JwtOption.verifyRefresh() ) as JwtPayload
 
             const user = await getRepository(User).findOne({ where: { id: payload.id} })
-            if (!user || !(user instanceof User) || !user.id) {
+            if (!user ||  !user.id) {
                 return "ユーザが見つかりません。"
             }
 
