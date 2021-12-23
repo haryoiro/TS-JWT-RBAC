@@ -1,4 +1,4 @@
-POST http://localhost:8000/auth/register
+POST http://localhost:8000/auth/SignUp
 Content-Type: application/json
 Host: localhost:8000
 

@@ -5,7 +5,7 @@ info:
 servers:
   - url: 'http://localhost:8000'
 paths:
-  /auth/regsiter:
+  /auth/signup:
     post:
       summary: ''
       operationId: post-auth-regsiter
@@ -27,9 +27,9 @@ paths:
         '400':
           description: Bad Request
       parameters:
-        - schema:
-            type: string
-          in: header
+          - schema:
+            name: string
+            in: header
       requestBody:
         content:
           application/json:

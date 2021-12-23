@@ -24,8 +24,8 @@ import { secureCookie } from '../config/Cookie';
 export class AuthController {
   userRepository: Repository<User> = getRepository(User);
 
-  @Post("/register")
-  async register(
+  @Post("/signup")f
+  async signup(
     @Res() res: IResponse,
     @Body() { email, username, password }
   ) {

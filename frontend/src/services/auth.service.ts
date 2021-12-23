@@ -2,25 +2,26 @@ import api from "./apiAccess"
 import axios, { AxiosResponse } from "axios";
 import { base64 } from "../helper/base64";
 
-interface ILoginRequest {
+export interface ILoginValue {
   username: string
   password: string
 }
-interface ITokenResponse {
+export interface ITokenResponse {
   token: string
   status: number
 }
-interface IRegisterRequest {
+export interface ISignUpValue {
   username: string
   password: string
   email: string
 }
-interface IUser {
+export interface IUser {
   id: string,
   username: string,
+  email: string,
   role: number
 }
-interface IPayload extends Object {
+export interface IPayload extends Object {
   iat: Date
   exp: Date
   user: IUser
@@ -37,7 +38,7 @@ class AuthService {
 
   constructor() { }
 
-  async login(content: ILoginRequest) {
+  async login(content: ILoginValue) {
     try {
       const response: AxiosResponse<any> = await api.post("/auth/login", content)
       const accessToken = await response.data.token.accessToken
@@ -54,6 +55,7 @@ class AuthService {
   async logout() {
     try {
       const user = window.localStorage.getItem("user")
+      console.log(user)
       if (!user) return
       const response: AxiosResponse<any> = await api.post("/auth/logout", JSON.parse(user))
       sessionStorage.removeItem("token")
@@ -64,9 +66,9 @@ class AuthService {
     }
   }
 
-  async register(content: IRegisterRequest): Promise<any> {
+  async SignUp(content: ISignUpValue): Promise<any> {
     try {
-      const response: AxiosResponse<ITokenResponse> = await api.post("/auth/register", content)
+      const response: AxiosResponse<ITokenResponse> = await api.post("/auth/SignUp", content)
       return response
     } catch (e) {
       return e
