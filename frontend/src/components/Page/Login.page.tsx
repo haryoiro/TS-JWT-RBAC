@@ -10,34 +10,26 @@ import {
   Spacer,
 } from "@chakra-ui/react"
 import { useForm, SubmitHandler, SubmitErrorHandler } from 'react-hook-form'
-import Auth, { RoleList } from "../../services/auth.service"
+import Auth, { ILoginValue, RoleList } from "../../services/auth.service"
 import { Form } from "../Forms/Form"
 import { Header } from "../Nav"
 import { useMutation } from "react-query"
 import { useHistory } from "react-router-dom"
 import useSharedStore from "../../hooks/useSharedStore"
-import { useRecoilValue } from "recoil"
-import { authAtom } from "../../state/auth.state"
-import { useUserActions } from "../../actions/user.action"
 import { useEffect } from "react"
+import { authActions, authSelectors } from "../../state/auth.state"
 
 const validMinMax = (value: string, tag: string, min?: number, max?: number) => {
   if (min && value.length < min) return `${tag}は${min}文字以上必要です。`
   if (max && value.length >= max) return `${tag}は${max}文字以下である必要があります。`
 }
 
-type ValuesType = {
-  username: string,
-  password: string,
-}
-
 // https://tech.stmn.co.jp/entry/2021/04/23/091310
 export const Login: React.FC = () => {
-  const auth = useRecoilValue(authAtom)
-  const userActions = useUserActions();
   const history = useHistory()
-
-  const { register, watch, handleSubmit, formState } = useForm<ValuesType>({
+  const doLogin = authActions.useLogin()
+  const me = authSelectors.me()
+  const { register, watch, handleSubmit, formState } = useForm<ILoginValue>({
     mode: 'onSubmit',
     reValidateMode: 'onChange',
     defaultValues: {
@@ -46,15 +38,17 @@ export const Login: React.FC = () => {
     }
   })
 
-  useEffect(() => {
-    if (auth) history.push("/")
-  }, [])
+  const onSubmit: SubmitHandler<ILoginValue> = async({ username, password }) => {
+    await doLogin(username, password)
 
-  const handleOnSubmit: SubmitHandler<ValuesType> = async ({ username, password }) => {
-    await userActions.login(username, password)
+    if (me.role === RoleList.Admin) {
+      await history.push("/admin/profile")
+    }
+
+    await history.push("/profile")
   }
 
-  const handleOnError: SubmitErrorHandler<ValuesType> = (errors) => {
+  const onError: SubmitErrorHandler<ILoginValue> = (errors) => {
     console.log(errors)
   }
 
@@ -65,7 +59,7 @@ export const Login: React.FC = () => {
       <Spacer />
 
       <Center>
-        <form onSubmit={handleSubmit(handleOnSubmit, handleOnError)}>
+        <form onSubmit={handleSubmit(onSubmit, onError)}>
           <Form
             id='username'
             type="text"

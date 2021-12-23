@@ -3,9 +3,8 @@ import { Button } from "@chakra-ui/react"
 import { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
+import { authActions, authSelectors } from "../state/auth.state";
 
-import { authAtom } from "../state/auth.state"
-import { useUserActions } from '../actions/user.action';
 
 export const Header = () => {
 
@@ -21,19 +20,19 @@ export const Header = () => {
 }
 
 const LoginBoxes = () => {
-  const auth = useRecoilValue(authAtom)
-  const userActions = useUserActions()
   const history = useHistory();
+  const logout = authActions.useLogout()
+  const loggedIn = authSelectors.loggedIn()
 
   return (
     <Box>
-      {auth ?
-      <Button colorScheme="teal" onClick={userActions.logout}>
-        LogOut
-      </Button>
+      {loggedIn ?
+        <Button colorScheme="teal" onClick={() => logout()}>
+          Logout
+        </Button>
       :
       <>
-        <Button colorScheme="teal" mr="4" onClick={() => history.push('/register')}>
+        <Button colorScheme="teal" mr="4" onClick={() => history.push('/SignUp')}>
           Sign Up
         </Button>
         <Button colorScheme="teal" onClick={() => history.push('/login')}>
