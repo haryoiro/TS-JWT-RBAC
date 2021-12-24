@@ -14,6 +14,7 @@ export class FakeUsers1634780285446 implements MigrationInterface {
             ))
             newUser.passwordHash = await bcrypt.hashSync(faker.internet.password(8), 8)
             newUser.role = RoleList.User
+            newUser.isActive = true
             await repository.save(newUser)
         }
     }

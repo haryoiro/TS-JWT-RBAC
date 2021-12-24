@@ -10,14 +10,8 @@ import {
   ManyToMany,
   JoinTable,
 } from "typeorm";
-import { V4 as paseto, ProduceOptions } from "paseto"
 import { IsNotEmpty, IsEmail, IsDate } from "class-validator";
 import * as bcrypt from "bcryptjs";
-import * as config from 'config';
-import * as jwt from "jsonwebtoken";
-import { Role } from "./Role";
-import * as Dayjs from "dayjs";
-import { createPrivateKey } from "crypto";
 
 export enum RoleList {
   Admin,
@@ -51,6 +45,9 @@ export class User {
 
   @Column()
   role: RoleList
+
+  @Column()
+  isActive: boolean
 
   @Column()
   @CreateDateColumn()

@@ -9,7 +9,7 @@ export class UserRepository extends Repository<User> {
 
     constructor() { super() }
 
-    async all(page, take, sortField: TSortUserField, sortOrder: TSortOrder) {
+    async paginate(page, take, sortField: TSortUserField, sortOrder: TSortOrder) {
         const users = getRepository(User).find({
             cache: true,
             select: [...SORT_USER_FIELD],

@@ -14,7 +14,8 @@ export default defineConfig({
     port: 8001,
     proxy: {
       "/auth/login": "http://localhost:8000",
-      "/auth/signup": "http://localhost:8000"
+      "/auth/signup": "http://localhost:8000",
+      "/user": "http://localhost:8000"
     }
   }
 })

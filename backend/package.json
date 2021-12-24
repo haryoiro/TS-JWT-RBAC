@@ -11,7 +11,7 @@
     "build": "cross-env NODE_ENV=production yarn clean && yarn tsc && node ./dist/index.js",
     "dev": "cross-env NODE_ENV=development ts-node-dev ./src/index.ts",
     "test": "jest __tests__",
-    "typeorm": "ts-node ./node_modules/.bin/typeorm",
+    "typeorm": "./node_modules/.bin/ts-node ./node_modules/typeorm/cli.js",
     "migration:run": "yarn typeorm migration:run"
   },
   "dependencies": {

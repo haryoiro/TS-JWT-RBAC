@@ -2,19 +2,37 @@ import api from "./apiAccess"
 import axios, { AxiosResponse } from "axios";
 import authService, { genHeader } from "./auth.service";
 
+export interface User {
+    username: string;
+    email: string;
+    verified: boolean;
+    role: number;
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    isActive: boolean;
+}
+
+interface UsersResult {
+    users: User[];
+}
+
+export interface UsersResponse {
+    all_page: number;
+    current_page: number;
+    next_page: number;
+    prev_page: boolean;
+    limit: number;
+    sorted_by: string;
+    fields: string[];
+    result: UsersResult;
+}
+
 class UserService {
-    async getAllUsers(skip:number=0, take:number=10) {
+    async getAll() {
         try {
-            const response: AxiosResponse<any> = await api
-                .get("/admin/users", {
-                    ...genHeader(),
-                    params: {
-                        skip,
-                        take,
-                    }
-                })
-            console.log(response)
-            return response
+            const response: AxiosResponse<User[]> = await api.get("/user", { ...genHeader() })
+            return response.data
         } catch (e) {
             console.log("res", e)
         }

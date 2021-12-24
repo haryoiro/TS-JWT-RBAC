@@ -27,8 +27,14 @@ export interface IPayload extends Object {
   user: IUser
 }
 
+export enum RoleList {
+  Admin,
+  Moderator,
+  User,
+}
+
 export function genHeader() {
-  const token = sessionStorage.get("token")
+  const token = sessionStorage.getItem("token")
   return { headers: {
     authorization: `Bearer ${token}`,
   } }
@@ -45,7 +51,6 @@ class AuthService {
       const payload = await this.payload(accessToken)
       sessionStorage.setItem("token", accessToken)
       sessionStorage.setItem("user", JSON.stringify(payload.user))
-      console.log(accessToken)
       return { user: payload.user, token: accessToken }
     } catch (e) {
       console.log("res",e)
@@ -54,19 +59,18 @@ class AuthService {
 
   async logout() {
     try {
-      const user = window.localStorage.getItem("user")
-      console.log(user)
+      const user = sessionStorage.getItem("user")
       if (!user) return
       const response: AxiosResponse<any> = await api.post("/auth/logout", JSON.parse(user))
-      sessionStorage.removeItem("token")
-      sessionStorage.removeItem("user")
+      await sessionStorage.removeItem("token")
+      await sessionStorage.removeItem("user")
       return response
     } catch(e) {
       console.log("logout", e)
     }
   }
 
-  async SignUp(content: ISignUpValue): Promise<any> {
+  async signup(content: ISignUpValue): Promise<any> {
     try {
       const response: AxiosResponse<ITokenResponse> = await api.post("/auth/SignUp", content)
       return response
@@ -89,10 +93,5 @@ class AuthService {
   }
 }
 
-export enum RoleList {
-  Admin,
-  Moderator,
-  User,
-}
 
 export default new AuthService

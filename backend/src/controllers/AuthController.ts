@@ -8,6 +8,7 @@ import {
   Patch,
   Req,
   Authorized,
+  Get,
 } from "routing-controllers";
 import { Request } from "express";
 import { getRepository, Repository } from "typeorm";
@@ -147,4 +148,7 @@ export class AuthController {
 
     this.userRepository.save(user)
   }
+
+  @Get("/me")
+  async me() { }
 }

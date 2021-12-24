@@ -8,6 +8,7 @@ import {
   Center,
   VStack,
   Spacer,
+  Link,
 } from "@chakra-ui/react"
 import { useForm, SubmitHandler, SubmitErrorHandler } from 'react-hook-form'
 import Auth from "../../services/auth.service"
@@ -24,6 +25,7 @@ export const Profile: React.FC = () => {
       <Spacer />
 
       <Center>
+        <Link href="/dashboard">Dashboard</Link>
       </Center>
     </VStack>
   )

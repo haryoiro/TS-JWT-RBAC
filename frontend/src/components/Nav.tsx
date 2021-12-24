@@ -24,15 +24,20 @@ const LoginBoxes = () => {
   const logout = authActions.useLogout()
   const loggedIn = authSelectors.loggedIn()
 
+  const onClickLogout = async () => {
+    await logout()
+    history.push('/login')
+  }
+
   return (
     <Box>
       {loggedIn ?
-        <Button colorScheme="teal" onClick={() => logout()}>
+        <Button colorScheme="teal" onClick={() => onClickLogout()}>
           Logout
         </Button>
       :
       <>
-        <Button colorScheme="teal" mr="4" onClick={() => history.push('/SignUp')}>
+        <Button colorScheme="teal" mr="4" onClick={() => history.push('/signup')}>
           Sign Up
         </Button>
         <Button colorScheme="teal" onClick={() => history.push('/login')}>

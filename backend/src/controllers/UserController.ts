@@ -33,15 +33,24 @@ class GetPaginationQuery {
   order?: TSortOrder
 }
 
-@JsonController("/admin")
-@Authorized([RoleList.Admin])
+@JsonController("/user")
+@Authorized([RoleList.Moderator])
 export class UserController {
 
   userRepository: Repository<User> = getRepository(User);
 
-  @Get("/users")
-  async all(@Res() res: Response, @QueryParams() query: GetPaginationQuery) {
-    const { page = 0, limit = 10, field = "createdAt", order = "ASC" } = query
+  @Get("/")
+  async all(@Res() res: Response) {
+    const users = await this.userRepository.find()
+
+    return res.status(200).json(
+      users
+    )
+  }
+
+  @Get("/pager")
+  async pager(@Res() res: Response, @QueryParams() query: GetPaginationQuery) {
+    const { page, limit, field = "createdAt", order = "ASC" } = query
 
     const allCount = await this.userRepository.count()
     const allPage = Math.floor(allCount/limit)
@@ -49,7 +58,7 @@ export class UserController {
     const nextPage = page !== allPage && page + 1
     const prevPage = page > 0 && page - 1
 
-    const users  = await getCustomRepository(UserRepository).all(page, limit, field, order)
+    const users  = await getCustomRepository(UserRepository).paginate(page, limit, field, order)
 
     return res.status(200).json({
       all_page: allPage,
@@ -65,14 +74,13 @@ export class UserController {
     })
   }
 
-  @Get("/users/:id")
+  @Get("/:id")
   async getById(@Res() res: Response, @Param("id") id: string) {
-    console.log(id)
     const user = await await getCustomRepository(UserRepository).one(id)
     return res.status(200).json(user)
   }
 
-  @Patch("/users/:id")
+  @Patch("/:id")
   async edit(@Res() res: Response, @Param("id") id: string, @Body() body: any) {
     const { username=null, email=null, role=null } = body
 
@@ -94,7 +102,8 @@ export class UserController {
   }
 
 
-  @Delete("/users/:id")
+  @Delete("/:id")
+  @Authorized([RoleList.Admin])
   async delete(@Res() res: Response, @Param("id") id: string) {
     const user = await getCustomRepository(UserRepository).one(id)
     if (!user) {

@@ -9,33 +9,36 @@ const defaultMe = {
     role: RoleList.User,
 }
 
+/** --------
+ * Atoms
+ --------- */
+
 type AuthState = {
     token: string | null,
     me: IUser
 }
 
-type AuthActions = {
-    useSignUp: (username: string, password: string, email: string) => Promise<boolean>,
-    useLogin: () => (username: string, password: string) => void,
-    useLogout: () => ()  => void
-}
-
-type AuthSelectors = {
-    me: () => IUser,
-    loggedIn: () => boolean
-}
-
 const authState = atom<AuthState>({
     key: "auth",
     default: {
-        token: null,
+        token: sessionStorage.getItem("token"),
         me: defaultMe
     }
 })
 
+/** --------
+ * Actions
+ --------- */
+
+type AuthActions = {
+    useSignUp: (username: string, password: string, email: string) => Promise<boolean>,
+    useLogin: () => (username: string, password: string) => void,
+    useLogout: () => () => void
+}
+
 export const authActions: AuthActions = {
     useSignUp: async (username: string, password: string, email: string) => {
-        const res = await authService.SignUp({ username, password, email })
+        const res = await authService.signup({ username, password, email })
         return res?.status == 200
     },
     useLogin: () => useRecoilCallback(({ set }) => async (username: string, password: string) => {
@@ -52,6 +55,15 @@ export const authActions: AuthActions = {
             me: defaultMe
         }))
     }, []),
+}
+
+/** --------
+ * Selectors
+ --------- */
+
+type AuthSelectors = {
+    me: () => IUser,
+    loggedIn: () => boolean
 }
 
 const meState = selector({

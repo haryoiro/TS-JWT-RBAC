@@ -4,7 +4,9 @@ import './App.css'
 import { Login } from './components/Page/Login.page';
 import { Profile } from './components/Page/Profile.page';
 import { SignUp } from './components/Page/SignUp.page'
+import { DashBoard } from './components/Page/DashBoard.page'
 import { PrivateRoute } from './components/PrivateRoute';
+import { Calen } from './components/Page/Calen.page';
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
       <Switch>
         <Route path="/signup" exact component={SignUp} />
         <Route path="/login" exact component={Login} />
+        <Route path="/dashboard" exact component={DashBoard} />
+        <Route path="/cal" exact component={Calen} />
         <PrivateRoute path="/profile" exact component={Profile}/>
         <Redirect from="*" to="/profile" />
       </Switch>
