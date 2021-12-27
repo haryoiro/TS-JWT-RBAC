@@ -1,0 +1,75 @@
+
+.calendar {
+  .bg {
+    background-color: #fff;
+    border-radius: 4px;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .table > tbody > tr > td {
+    padding: 1px !important;
+    text-align: center;
+  }
+
+  .th {
+    text-align: center;
+    padding: 0.5rem;
+  }
+
+  .td, .th {
+    user-select: none;
+    text-align: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    font-weight: 500;
+    font-size: 1em;
+  }
+  tr td:nth-of-type(1) {
+    color: #e64646;
+  }
+
+  .active {
+    background-color: #3b80e7;
+    border-radius: 50%;
+    span {
+      color: #fff;
+    }
+  }
+  .today {
+    border-radius: 0px;
+  }
+  .another-month {
+    background-color: #c7c7c7;
+    color: #fff;
+  }
+}
+
+.selectme {
+  outline: none;
+  appearance: none;
+  font-weight: 500;
+  font-size: 1.5em;
+  text-align: center;
+  justify-content: center;
+  padding-bottom: 0.2em;
+}
+.arrow-button {
+  outline: none;
+  background-color: none;
+  border: none;
+  svg {
+    width: 1.5em;
+    height: 1.5em;
+    fill: #e64646;
+  }
+}
+.chakra-select__icon-wrapper {
+  display: none;
+  visibility: hidden;
+}

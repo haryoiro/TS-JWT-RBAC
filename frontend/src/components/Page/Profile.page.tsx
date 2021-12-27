@@ -8,12 +8,12 @@ import {
   Center,
   VStack,
   Spacer,
-  Link,
 } from "@chakra-ui/react"
 import { useForm, SubmitHandler, SubmitErrorHandler } from 'react-hook-form'
 import Auth from "../../services/auth.service"
 import validator from "validator"
 import { Header } from "../Nav"
+import { Link } from "react-router-dom"
 
 // https://tech.stmn.co.jp/entry/2021/04/23/091310
 export const Profile: React.FC = () => {
@@ -25,7 +25,7 @@ export const Profile: React.FC = () => {
       <Spacer />
 
       <Center>
-        <Link href="/dashboard">Dashboard</Link>
+        <Link to="/dashboard">Dashboard</Link>
       </Center>
     </VStack>
   )

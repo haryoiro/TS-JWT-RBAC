@@ -1,0 +1,27 @@
+
+
+.max-width {
+  max-width: 160px;
+  min-width: none;
+  width: 100px;
+}
+
+.table {
+  text-align: left;
+  // min-width: 640px;
+  margin: 0 10px 50px;
+}
+
+table > tbody > tr > td {
+  max-width: 160px;
+  padding-left: 1em;;
+}
+.scroll {
+  overflow-x: auto;
+}
+
+td, th, tr {
+  text-align: left;
+  // border-top: solid 1px #ccc;
+  border-bottom: solid 1px #ccc;
+}

@@ -16,25 +16,24 @@ import {
 import { RoleList } from '../../services/auth.service';
 import { Header } from '../Nav';
 import { UsersList } from '../UsersList';
+import SideNav from '../SideNav';
+import { authActions } from '../../state/auth.state';
 
 export type DashBoardProps = {}
 
 export const DashBoard: FC<DashBoardProps> = () => {
-    const init = usersActions.initUsers()
-    const users = usersSelectors.all()
+    const initUsers = usersActions.initUsers()
 
     useEffect(() => {
-        init()
+        initUsers()
     }, [])
 
     return (
-        <VStack>
-            <Spacer />
-            <Header></Header>
-            <Center>
+        <SideNav>
+            <div className="overflow">
                 <UsersList />
-            </Center>
-            <Spacer />
-        </VStack>
+            </div>
+        </SideNav>
+        
     )
 };

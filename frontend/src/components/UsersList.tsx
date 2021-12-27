@@ -14,7 +14,8 @@ import {
   TableCaption,
 } from "@chakra-ui/react"
 import { RoleList } from '../services/auth.service';
-import { SORT_USER_FIELD } from '../../../backend/src/types/types';
+import { ModalCalendar } from './ModalCalendar';
+import "./UserList.module.scss"
 
 export type UsersListProps = {}
 const dayjsFormat = "YYYY MMM D"
@@ -34,19 +35,21 @@ export const UsersList: FC<UsersListProps> = () => {
         <Box>
           <Button colorScheme="red">Active</Button>
           <Button colorScheme="teal">Deactive</Button>
+          <ModalCalendar />
         </Box>
         <Spacer />
         <Box>
           <Input placeholder='Filter' />
         </Box>
       </Flex>
-      <Table>
+      <hr />
+      <Table size="sm" className="table scroll">
         <Thead>
           <Tr>
             <Th></Th>
-            {Object.keys(USER_FIELD).map((field: string) => (
+            {Object.keys(USER_FIELD).filter(a => (a !== "ID")).map((field: string) => (
               <>
-                <Th key={field} value={field}>
+                <Th key={field} value={field} className="max-width">
                   <ButtonGroup size='xs' isAttached variant='outline'>
                     <Button mr='-px' onClick={() =>
                     { setSortField(USER_FIELD[field as keyof typeof USER_FIELD])}
@@ -60,15 +63,15 @@ export const UsersList: FC<UsersListProps> = () => {
         </Thead>
         <Tbody>
           {users?.map((user) => (
-            <Tr key={user.id}>
-              <Td><input type="checkbox" /></Td>
-              <Td>{user.username}</Td>
-              <Td>{user.email}</Td>
-              <Td>{RoleList[user.role]}</Td>
-              <Td>{user.isActive ? "Active": "Inactive"}</Td>
-              <Td>{dayjs(user.createdAt).format(dayjsFormat)}</Td>
-              <Td>{dayjs(user.updatedAt).format(dayjsFormat)}</Td>
-            </Tr>
+            <tr key={user.id}>
+              <td><input type="checkbox" /></td>
+              <td className="max-width">{user.username}</td>
+              <td><div className="max-width">{user.email}</div></td>
+              <td className="max-width">{RoleList[user.role]}</td>
+              <td>{user.isActive ? "Active": "Inactive"}</td>
+              <td>{dayjs(user.createdAt).format(dayjsFormat)}</td>
+              <td>{dayjs(user.updatedAt).format(dayjsFormat)}</td>
+            </tr>
           ))}
         </Tbody>
         </Table>

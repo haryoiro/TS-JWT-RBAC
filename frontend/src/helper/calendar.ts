@@ -20,7 +20,7 @@ type MonthNameLongTuple = typeof MONTH_NAME_LONG
 type MonthNameShort = MonthNameShortTuple[number]
 type MonthNameLong = MonthNameLongTuple[number]
 
-type DayDetail = { year: number, month: number, day: number }
+export type DayDetail = { year: number, month: number, day: number }
 
 export class Calendar {
 
@@ -37,8 +37,9 @@ export class Calendar {
    * @returns {number[][]}
    */
   public genCalendar = (year: number, month: number) => {
-    const firstDay = new Date(year, month - 1, 1).getDay()
-    const lastDays = new Date(year, month - 1, 0).getDate()
+    const mo =  (month >= 13) ? 1 : month
+    const firstDay = new Date(year, mo - 1, 1).getDay()
+    const lastDays = new Date(year, mo - 1, 0).getDate()
     const cdays = new Date(year, month, 0).getDate()
     const days = array2d<number>(6, 7, 0)
     let day = 1
@@ -68,21 +69,21 @@ export class Calendar {
       for (let j = 0; j < 7; j++) {
         if (i === 0 && j < firstDay) {
           days[i][j] = {
-            year,
-            month,
+            year: month == 1 ? year - 1 : year,
+            month: month == 1 ? 12 : month - 1 ,
             day: lastDays - firstDay + j + 1
           }
         } else if (day <= curDays) {
           days[i][j] = {
             year,
-            month: month + 1,
+            month,
             day
           }
           day++
         } else {
           days[i][j] = {
-            year,
-            month: month + 2,
+            year: month == 12 ? year + 1 : year,
+            month: month == 12 ? 1 : month + 1,
             day:day - curDays
           }
           day++
@@ -124,12 +125,47 @@ export class Calendar {
   }
 
   /**
+   * @description 週の名前を取得する。
    * 
-   * @param short {boolean}
-   * @returns {string}
+   * @param short {boolean} @description ショートハンドを取得するかどうか
+   * @returns　(WeekNameShort | WeekNameLong)[]　@description 週の名前の配列
    */
   public getWeekName = (short: boolean = false): (WeekNameShort | WeekNameLong)[] => {
     return short ? WEEK_NAME_SHORT : WEEK_NAME_LONG
   }
 
+  /**
+   * @description 現在の日付を取得する
+   * 
+   * @returns {DayDetail}
+   */
+  public getToday = (): DayDetail => {
+    const today = new Date()
+    return {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+      day: today.getDate()
+    }
+  }
+
+  /**
+   * @description 引数に渡されたデータが今日かどうかを判定する
+   *
+   * @param target {DayDetail}
+   * @returns {boolean}
+   */
+  public isToday = (target: DayDetail): boolean => {
+    const today = this.getToday()
+    return (
+      target.day == today.day &&
+      target.month == today.month &&
+      target.year == today.year
+    )
+  }
+
+
+  public isWeekend = (target: DayDetail): boolean => {
+    const day = new Date(target.year, target.month - 1, target.day).getDay()
+    return day === 0 || day === 6
+  }
 }
