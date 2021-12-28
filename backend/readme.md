@@ -12,7 +12,6 @@ routing-controller [GitHub](https://github.com/typestack/routing-controllers)
 
 reflect-metadata [GitHub](https://github.com/rbuckton/reflect-metadata)
 
-
 ## Usage
 
 ```
@@ -34,12 +33,6 @@ yarn typeorm migration:run
 ```bash
 yarn typeorm migration:generate -n gen
 yarn typeorm migration:run
-```
-
-### dockerで立ち上げる
-
-```bash
-docker run -p 8080:3000 tsserver:latest
 ```
 
 ## License
