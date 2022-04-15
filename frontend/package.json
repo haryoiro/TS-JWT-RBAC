@@ -31,7 +31,7 @@
     "react-router-dom": "^5.3.0",
     "recoil": "^0.4.1",
     "scss": "^0.2.4",
-    "validator": "^13.6.0",
+    "validator": "^13.7.0",
     "vite-plugin-sass-dts": "^1.1.21"
   },
   "devDependencies": {
