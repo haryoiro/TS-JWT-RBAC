@@ -28,7 +28,7 @@
     "csurf": "^1.11.0",
     "dayjs": "^1.10.7",
     "dotenv": "^10.0.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-boom": "^3.0.0",
     "express-boom-v2": "^4.2.2",
     "faker": "^5.5.3",
